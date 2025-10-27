@@ -60,12 +60,13 @@ app.use((err, req, res, next) => {
 // Database connection
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGODB_URI, {
+    console.log("⏳ Trying to connect to MongoDB...");
+    const conn = await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
     
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log(`✅ Connected to MongoDB Atlas: ${conn.connection.host}`);
     
     // Create default admin user if none exists
     const User = require('./models/User');
@@ -111,7 +112,7 @@ const connectDB = async () => {
     }
     
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.error('❌ MongoDB connection error:', error);
     process.exit(1);
   }
 };
@@ -122,13 +123,11 @@ const PORT = process.env.PORT || 4000;
 const startServer = async () => {
   await connectDB();
   
-  app.listen(PORT, () => {
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`
-╔════════════════════════════════════════════╗
-║   Sales Scoreboard API Server Running     ║
-║   Port: ${PORT}                              ║
-║   Environment: ${process.env.NODE_ENV || 'development'}              ║
-╚════════════════════════════════════════════╝
+✅ Sales Scoreboard API Server is Listening
+Port: ${PORT}
+Environment: ${process.env.NODE_ENV || 'development'}
     `);
   });
 };
@@ -138,7 +137,6 @@ startServer();
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Promise Rejection:', err);
-  // Close server & exit process
   process.exit(1);
 });
 
