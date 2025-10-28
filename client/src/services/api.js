@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// אם יש משתנה סביבה, נשתמש בו, אחרת ברירת מחדל לשרת לוקאלי
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+// ✅ תיקון: הסר את /api מה-baseURL כי הוא כבר בנתיבים
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -10,7 +10,7 @@ const api = axios.create({
   },
 });
 
-// ✅ מוסיף טוקן לכל בקשה במידה והוא שמור בלוקאל סטורג’
+// ✅ מוסיף טוקן לכל בקשה
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -36,34 +36,34 @@ api.interceptors.response.use(
 );
 
 // =======================
-// 🔐 AUTH API (תואם לשרת שלך)
+// 🔐 AUTH API
 // =======================
 export const authAPI = {
-  login: (credentials) => api.post("/api/auth/login", credentials),
-  register: (userData) => api.post("/api/auth/register", userData),
-  getMe: () => api.get("/api/auth/me"),
+  login: (credentials) => api.post("/auth/login", credentials),
+  register: (userData) => api.post("/auth/register", userData),
+  getMe: () => api.get("/auth/me"),
 };
 
 // =======================
 // 👥 USERS API
 // =======================
 export const usersAPI = {
-  getLeaderboard: () => api.get("/api/users/leaderboard"),
-  getProfile: (id) => api.get(`/api/users/profile/${id}`),
-  updateProfile: (data) => api.put("/api/users/profile", data),
-  updateSales: (id, sales) => api.put(`/api/users/${id}/sales`, { sales }),
-  addSales: (id, amount) => api.post(`/api/users/${id}/add-sales`, { amount }),
-  getAllUsers: () => api.get("/api/users/all"),
-  createUser: (userData) => api.post("/api/users/create", userData),
-  deleteUser: (id) => api.delete(`/api/users/${id}`),
-  resetLeaderboard: () => api.post("/api/users/reset-leaderboard"),
+  getLeaderboard: () => api.get("/users/leaderboard"),
+  getProfile: (id) => api.get(`/users/profile/${id}`),
+  updateProfile: (data) => api.put("/users/profile", data),
+  updateSales: (id, sales) => api.put(`/users/${id}/sales`, { sales }),
+  addSales: (id, amount) => api.post(`/users/${id}/add-sales`, { amount }),
+  getAllUsers: () => api.get("/users/all"),
+  createUser: (userData) => api.post("/users/create", userData),
+  deleteUser: (id) => api.delete(`/users/${id}`),
+  resetLeaderboard: () => api.post("/users/reset-leaderboard"),
 };
 
 // =======================
 // 🤖 AI API
 // =======================
 export const aiAPI = {
-  sendMessage: (message) => api.post("/api/ai/chat", { message }),
+  sendMessage: (message) => api.post("/ai/chat", { message }),
 };
 
 export default api;

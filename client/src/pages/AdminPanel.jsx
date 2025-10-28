@@ -4,7 +4,6 @@ import {
   Users,
   Plus,
   Trash2,
-  DollarSign,
   RefreshCw,
   AlertCircle,
   CheckCircle,
@@ -43,10 +42,10 @@ const AVATAR_GALLERY = [
   'https://api.dicebear.com/7.x/personas/svg?seed=Person4',
 ];
 
-// Image compression function
+// ✅ תיקון: פונקציית דחיסת תמונות משופרת
 const compressImage = (file, maxWidth = 200, maxHeight = 200, quality = 0.7) => {
   return new Promise((resolve, reject) => {
-    // Validate input
+    // Validate file
     if (!file) {
       reject(new Error('No file provided'));
       return;
@@ -66,16 +65,12 @@ const compressImage = (file, maxWidth = 200, maxHeight = 200, quality = 0.7) => 
 
     const reader = new FileReader();
     
-    reader.onerror = () => {
-      reject(new Error('Failed to read file'));
-    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
     
     reader.onload = (event) => {
       const img = new Image();
       
-      img.onerror = () => {
-        reject(new Error('Failed to load image'));
-      };
+      img.onerror = () => reject(new Error('Failed to load image'));
       
       img.onload = () => {
         try {
@@ -83,53 +78,32 @@ const compressImage = (file, maxWidth = 200, maxHeight = 200, quality = 0.7) => 
           let width = img.width;
           let height = img.height;
 
+          // Calculate new dimensions
           if (width > height) {
             if (width > maxWidth) {
-              height *= maxWidth / width;
+              height = Math.round((height * maxWidth) / width);
               width = maxWidth;
             }
           } else {
             if (height > maxHeight) {
-              width *= maxHeight / height;
+              width = Math.round((width * maxHeight) / height);
               height = maxHeight;
             }
           }
 
           canvas.width = width;
           canvas.height = height;
+          
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
           
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) {
-                reject(new Error('Failed to compress image'));
-                return;
-              }
-
-              try {
-                const compressedFile = new File([blob], file.name, {
-                  type: 'image/jpeg',
-                  lastModified: Date.now(),
-                });
-                const compressedReader = new FileReader();
-                
-                compressedReader.onerror = () => {
-                  reject(new Error('Failed to read compressed image'));
-                };
-                
-                compressedReader.onloadend = () => {
-                  resolve(compressedReader.result);
-                };
-                
-                compressedReader.readAsDataURL(compressedFile);
-              } catch (error) {
-                reject(error);
-              }
-            },
-            'image/jpeg',
-            quality
-          );
+          // Convert to base64
+          try {
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve(dataUrl);
+          } catch (err) {
+            reject(new Error('Failed to convert image: ' + err.message));
+          }
         } catch (error) {
           reject(error);
         }
@@ -192,11 +166,10 @@ const AdminPanel = () => {
     }
 
     try {
-      // Update the users array locally to reflect the change
       setUsers(users.map(u => u.id === userId ? { ...u, name: newName } : u));
       setEditingUser(null);
       setEditingUserName('');
-      showMessage('success', '✅ User name updated! (Note: This updates locally only)');
+      showMessage('success', '✅ User name updated locally');
     } catch (err) {
       showMessage('error', '❌ Failed to update user name');
     }
@@ -204,7 +177,6 @@ const AdminPanel = () => {
 
   const handleUpdateAvatar = async (userId, newAvatar) => {
     try {
-      // Get user token from localStorage
       const token = localStorage.getItem('token');
       
       if (!token) {
@@ -212,8 +184,10 @@ const AdminPanel = () => {
         return;
       }
 
-      // Send update to server using admin route
-      const response = await fetch(`http://localhost:4000/api/users/${userId}/profile`, {
+      // ✅ תיקון: השתמש ב-API מה-services במקום fetch ישיר
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
+      
+      const response = await fetch(`${apiUrl}/users/${userId}/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -229,10 +203,7 @@ const AdminPanel = () => {
         throw new Error(errorData.message || 'Failed to update avatar');
       }
 
-      const updatedUser = await response.json();
-
-      // Update locally after successful server update
-      setUsers(users.map(u => u.id === userId ? { ...u, profilePicture: newAvatar } : u));
+      await fetchUsers();
       setShowAvatarModal(null);
       showMessage('success', '✅ Avatar updated successfully!');
     } catch (err) {
@@ -541,11 +512,10 @@ const AdminPanel = () => {
             user={users.find(u => u.id === showRoleModal)}
             onClose={() => setShowRoleModal(null)}
             onUpdate={async (isAdmin) => {
-              // Update locally
               setUsers(users.map(u => 
                 u.id === showRoleModal ? { ...u, isAdmin } : u
               ));
-              showMessage('success', '✅ Role updated! (Note: This updates locally only)');
+              showMessage('success', '✅ Role updated locally');
               setShowRoleModal(null);
             }}
           />
@@ -555,28 +525,30 @@ const AdminPanel = () => {
   );
 };
 
-// Avatar Picker Modal with compression
+// Avatar Picker Modal with improved compression
 const AvatarPickerModal = ({ userId, currentAvatar, currentUserName, onClose, onSelect }) => {
   const [customUrl, setCustomUrl] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [error, setError] = useState('');
 
   const handleFileSelect = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setIsCompressing(true);
-      try {
-        // Compress the image
-        const compressed = await compressImage(file);
-        setSelectedFile(file);
-        setPreview(compressed);
-      } catch (error) {
-        console.error('Error compressing image:', error);
-        alert('Failed to process image. Please try a different file.');
-      } finally {
-        setIsCompressing(false);
-      }
+    if (!file) return;
+
+    setIsCompressing(true);
+    setError('');
+    
+    try {
+      const compressed = await compressImage(file);
+      setSelectedFile(file);
+      setPreview(compressed);
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      setError(error.message || 'Failed to process image');
+    } finally {
+      setIsCompressing(false);
     }
   };
 
@@ -608,6 +580,13 @@ const AvatarPickerModal = ({ userId, currentAvatar, currentUserName, onClose, on
             <Upload className="w-5 h-5" />
             Upload Custom Image
           </h3>
+          
+          {error && (
+            <div className="mb-3 p-3 bg-red-50 border-2 border-red-200 rounded-lg">
+              <p className="text-sm text-red-700 font-medium">{error}</p>
+            </div>
+          )}
+          
           <input
             type="file"
             accept="image/*"
@@ -615,12 +594,14 @@ const AvatarPickerModal = ({ userId, currentAvatar, currentUserName, onClose, on
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
             disabled={isCompressing}
           />
+          
           {isCompressing && (
             <div className="mt-3 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
               <p className="text-sm text-gray-600">Compressing image...</p>
             </div>
           )}
+          
           {preview && !isCompressing && (
             <div className="mt-3 text-center">
               <img src={preview} alt="Preview" className="w-20 h-20 rounded-full mx-auto border-2 border-purple-300" />

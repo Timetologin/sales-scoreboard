@@ -21,7 +21,6 @@ app.use(cors({
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -61,7 +60,9 @@ app.use((err, req, res, next) => {
 const connectDB = async () => {
   try {
     console.log("⏳ Trying to connect to MongoDB...");
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
+    
+    // ✅ תיקון: השתמש ב-MONGODB_URI במקום MONGO_URI
+    const conn = await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -83,9 +84,9 @@ const connectDB = async () => {
       });
       
       await defaultAdmin.save();
-      console.log('Default admin user created:');
-      console.log('Email: admin@company.com');
-      console.log('Password: admin123');
+      console.log('✅ Default admin user created:');
+      console.log('   Email: admin@company.com');
+      console.log('   Password: admin123');
       console.log('⚠️  IMPORTANT: Change this password in production!');
     }
 
@@ -108,7 +109,7 @@ const connectDB = async () => {
         await user.save();
       }
       
-      console.log('Sample users created successfully');
+      console.log('✅ Sample users created successfully');
     }
     
   } catch (error) {
