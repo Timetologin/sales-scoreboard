@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'https://ui-avatars.com/api/?background=random&name='
   },
-  sales: {
+  ftds: {
     type: Number,
     default: 0,
     min: 0
@@ -69,7 +69,7 @@ userSchema.methods.getPublicProfile = function() {
     name: this.name,
     email: this.email,
     profilePicture: this.profilePicture,
-    sales: this.sales,
+    ftds: this.ftds,
     isAdmin: this.isAdmin,
     createdAt: this.createdAt,
     lastUpdated: this.lastUpdated

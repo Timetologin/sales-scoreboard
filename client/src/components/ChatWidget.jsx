@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Sparkles } from 'lucide-react';
+import { MessageCircle, X, Send, Flame, Crown } from 'lucide-react';
 import { aiAPI } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -8,7 +8,7 @@ const ChatWidget = () => {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: "👋 Hi! I'm your sales coach. Ask me anything about improving your sales performance!",
+      content: "🐯 ROAR! I'm your fierce tiger coach. Ask me anything about dominating your territory!",
     },
   ]);
   const [input, setInput] = useState('');
@@ -24,10 +24,10 @@ const ChatWidget = () => {
   }, [messages]);
 
   const examplePrompts = [
-    'How to improve sales?',
-    'Give me motivation',
-    'Sales tips for today',
-    'How to handle rejection?',
+    '🔥 How to dominate sales?',
+    '👑 Give me alpha motivation',
+    '⚡ Hunting tips for today',
+    '🐯 How to handle rejection?',
   ];
 
   const handleSend = async (text = input) => {
@@ -43,10 +43,10 @@ const ChatWidget = () => {
       const aiMessage = { role: 'assistant', content: response.data.response };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err) {
-      console.error('AI chat error:', err);
+      console.error('Tiger coach error:', err);
       const errorMessage = {
         role: 'assistant',
-        content: "I'm having trouble connecting right now. Please try again!",
+        content: "🐯 The alpha is temporarily away from the den. Try again soon, fierce tiger!",
       };
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
@@ -68,9 +68,13 @@ const ChatWidget = () => {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-16 h-16 bg-primary-600 hover:bg-primary-700 text-white rounded-full shadow-2xl flex items-center justify-center z-50 transition-colors"
+        className="fixed bottom-6 right-6 w-16 h-16 bg-tiger-gradient hover:shadow-[0_0_40px_rgba(255,140,0,0.8)] text-white rounded-full shadow-2xl flex items-center justify-center z-50 transition-all border-2 border-tiger-yellow"
       >
-        {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
+        {isOpen ? (
+          <X className="w-7 h-7" />
+        ) : (
+          <span className="text-3xl animate-roar">🐯</span>
+        )}
       </motion.button>
 
       {/* Chat Window */}
@@ -80,21 +84,25 @@ const ChatWidget = () => {
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="fixed bottom-24 right-6 w-96 h-[500px] bg-white rounded-2xl shadow-2xl flex flex-col z-50 overflow-hidden"
+            className="fixed bottom-24 right-6 w-96 h-[500px] bg-dark-card rounded-2xl shadow-[0_0_50px_rgba(255,140,0,0.4)] flex flex-col z-50 overflow-hidden border-2 border-tiger-orange"
           >
             {/* Header */}
-            <div className="gradient-bg p-4 flex items-center gap-3">
-              <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-primary-600" />
+            <div className="bg-tiger-gradient p-4 flex items-center gap-3">
+              <div className="relative">
+                <div className="w-12 h-12 bg-dark-card rounded-full flex items-center justify-center">
+                  <span className="text-3xl">🐯</span>
+                </div>
+                <Crown className="absolute -top-1 -right-1 w-6 h-6 text-tiger-yellow animate-pulse tiger-eyes" />
               </div>
               <div className="flex-1">
-                <h3 className="text-white font-bold">AI Sales Coach</h3>
-                <p className="text-primary-100 text-xs">Always here to help</p>
+                <h3 className="text-white font-extrabold text-lg">Tiger Coach</h3>
+                <p className="text-xs text-tiger-yellow font-bold">Alpha hunting advisor</p>
               </div>
+              <Flame className="w-6 h-6 text-tiger-yellow animate-pulse" />
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-dark-bg">
               {messages.map((message, index) => (
                 <motion.div
                   key={index}
@@ -107,8 +115,8 @@ const ChatWidget = () => {
                   <div
                     className={`max-w-[80%] p-3 rounded-2xl ${
                       message.role === 'user'
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-gray-100 text-gray-800'
+                        ? 'bg-tiger-gradient text-white font-semibold'
+                        : 'bg-dark-card text-orange-100 border border-tiger-orange'
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -118,15 +126,15 @@ const ChatWidget = () => {
 
               {loading && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-100 p-3 rounded-2xl">
+                  <div className="bg-dark-card p-3 rounded-2xl border border-tiger-orange">
                     <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-tiger-orange rounded-full animate-bounce"></div>
                       <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-tiger-orange rounded-full animate-bounce"
                         style={{ animationDelay: '0.1s' }}
                       ></div>
                       <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-tiger-orange rounded-full animate-bounce"
                         style={{ animationDelay: '0.2s' }}
                       ></div>
                     </div>
@@ -139,14 +147,14 @@ const ChatWidget = () => {
 
             {/* Example Prompts */}
             {messages.length <= 1 && (
-              <div className="px-4 pb-2">
-                <p className="text-xs text-gray-500 mb-2">Quick questions:</p>
+              <div className="px-4 pb-2 bg-dark-bg">
+                <p className="text-xs text-tiger-orange font-bold mb-2">🔥 Quick questions:</p>
                 <div className="flex flex-wrap gap-2">
                   {examplePrompts.map((prompt, index) => (
                     <button
                       key={index}
                       onClick={() => handleSend(prompt)}
-                      className="text-xs bg-primary-50 hover:bg-primary-100 text-primary-700 px-3 py-1 rounded-full transition-colors"
+                      className="text-xs bg-dark-card hover:bg-dark-hover text-tiger-orange px-3 py-1 rounded-full transition-colors border border-tiger-orange font-semibold"
                     >
                       {prompt}
                     </button>
@@ -156,21 +164,21 @@ const ChatWidget = () => {
             )}
 
             {/* Input */}
-            <div className="p-4 border-t border-gray-200">
+            <div className="p-4 border-t border-dark-border bg-dark-card">
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Ask your tiger coach..."
+                  className="flex-1 px-4 py-2 bg-dark-bg border border-tiger-orange rounded-full focus:outline-none focus:ring-2 focus:ring-tiger-orange text-orange-100 placeholder-gray-500"
                   disabled={loading}
                 />
                 <button
                   onClick={() => handleSend()}
                   disabled={!input.trim() || loading}
-                  className="w-10 h-10 bg-primary-600 hover:bg-primary-700 text-white rounded-full flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-10 h-10 bg-tiger-gradient hover:shadow-[0_0_20px_rgba(255,140,0,0.6)] text-white rounded-full flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   <Send className="w-5 h-5" />
                 </button>

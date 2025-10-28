@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usersAPI } from '../services/api';
-import { Trophy, Crown, Medal, TrendingUp, Users, DollarSign } from 'lucide-react';
+import { Trophy, Crown, Medal, TrendingDown, Users, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Dashboard = () => {
@@ -29,14 +29,6 @@ const Dashboard = () => {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(amount);
-  };
-
   const getRankIcon = (rank) => {
     switch (rank) {
       case 1:
@@ -63,8 +55,9 @@ const Dashboard = () => {
     }
   };
 
-  const totalSales = leaderboard.reduce((sum, user) => sum + user.sales, 0);
-  const maxSales = leaderboard[0]?.sales || 1;
+  const totalFTDs = leaderboard.reduce((sum, user) => sum + user.ftds, 0);
+  const minFTDs = leaderboard[0]?.ftds || 0;
+  const maxFTDs = leaderboard[leaderboard.length - 1]?.ftds || 1;
 
   if (loading) {
     return (
@@ -89,9 +82,9 @@ const Dashboard = () => {
           <div className="text-center mb-6">
             <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-3">
               <Trophy className="w-10 h-10 text-yellow-500" />
-              Sales Leaderboard
+              FTD Leaderboard
             </h1>
-            <p className="text-gray-600">Compete, achieve, and celebrate success together</p>
+            <p className="text-gray-600">First Time Deposits - Lower is Better! 🎯</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -101,15 +94,15 @@ const Dashboard = () => {
               <p className="text-3xl font-bold text-gray-900">{leaderboard.length}</p>
             </div>
             <div className="card text-center">
-              <DollarSign className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <p className="text-sm text-gray-600">Total Sales</p>
-              <p className="text-3xl font-bold text-gray-900">{formatCurrency(totalSales)}</p>
+              <Target className="w-8 h-8 text-green-600 mx-auto mb-2" />
+              <p className="text-sm text-gray-600">Total FTD's</p>
+              <p className="text-3xl font-bold text-gray-900">{totalFTDs}</p>
             </div>
             <div className="card text-center">
-              <TrendingUp className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-              <p className="text-sm text-gray-600">Top Performer</p>
+              <TrendingDown className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+              <p className="text-sm text-gray-600">Best (Lowest)</p>
               <p className="text-3xl font-bold text-gray-900">
-                {leaderboard[0] ? formatCurrency(leaderboard[0].sales) : '$0'}
+                {leaderboard[0] ? `${leaderboard[0].ftds} FTD's` : '0 FTD\'s'}
               </p>
             </div>
           </div>
@@ -160,11 +153,15 @@ const Dashboard = () => {
                 </div>
                 <p className="text-sm text-gray-600 truncate">{user.email}</p>
                 
-                {/* Progress Bar */}
+                {/* Progress Bar - Inverted logic */}
                 <div className="mt-2 bg-gray-200 rounded-full h-2 overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${(user.sales / maxSales) * 100}%` }}
+                    animate={{ 
+                      width: maxFTDs > 0 
+                        ? `${100 - ((user.ftds / maxFTDs) * 100)}%` 
+                        : '0%'
+                    }}
                     transition={{ duration: 1, delay: index * 0.05 }}
                     className={`h-full ${
                       user.rank === 1 ? 'gold-gradient' : 'bg-primary-600'
@@ -173,13 +170,13 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* Sales Amount */}
+              {/* FTDs Count */}
               <div className="text-right flex-shrink-0">
                 <p className="text-2xl font-bold text-primary-600">
-                  {formatCurrency(user.sales)}
+                  {user.ftds} FTD's
                 </p>
                 <p className="text-xs text-gray-500">
-                  {((user.sales / maxSales) * 100).toFixed(1)}% of leader
+                  {user.rank === 1 ? '🏆 Leader' : `+${user.ftds - minFTDs} from leader`}
                 </p>
               </div>
             </motion.div>
@@ -190,7 +187,7 @@ const Dashboard = () => {
           <div className="text-center py-12">
             <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-600 mb-2">No data yet</h3>
-            <p className="text-gray-500">Start making sales to appear on the leaderboard!</p>
+            <p className="text-gray-500">Start getting FTD's to appear on the leaderboard!</p>
           </div>
         )}
       </div>

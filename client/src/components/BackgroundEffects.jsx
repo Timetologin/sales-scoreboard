@@ -1,61 +1,94 @@
 import React, { useEffect } from 'react';
-import { DollarSign, TrendingUp, Award, Target, Zap, Star } from 'lucide-react';
+import { Crown, Flame, Zap } from 'lucide-react';
 
 const BackgroundEffects = () => {
   useEffect(() => {
-    // Create stars
-    const createStars = () => {
-      const starsContainer = document.getElementById('stars-container');
-      if (!starsContainer) return;
+    // Create tiger paw prints
+    const createPawPrints = () => {
+      const pawContainer = document.getElementById('paw-prints-container');
+      if (!pawContainer) return;
 
-      for (let i = 0; i < 50; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        star.style.left = `${Math.random() * 100}%`;
-        star.style.top = `${Math.random() * 100}%`;
-        star.style.animationDelay = `${Math.random() * 3}s`;
-        starsContainer.appendChild(star);
+      for (let i = 0; i < 12; i++) {
+        const paw = document.createElement('div');
+        paw.className = 'paw-print';
+        paw.innerHTML = '🐾';
+        paw.style.left = `${Math.random() * 100}%`;
+        paw.style.fontSize = `${20 + Math.random() * 30}px`;
+        paw.style.animationDelay = `${Math.random() * 5}s`;
+        paw.style.animationDuration = `${8 + Math.random() * 4}s`;
+        pawContainer.appendChild(paw);
       }
     };
 
-    createStars();
+    createPawPrints();
   }, []);
 
-  const icons = [
-    { Icon: DollarSign, color: 'text-green-500' },
-    { Icon: TrendingUp, color: 'text-blue-500' },
-    { Icon: Award, color: 'text-yellow-500' },
-    { Icon: Target, color: 'text-red-500' },
-    { Icon: Zap, color: 'text-purple-500' },
-    { Icon: Star, color: 'text-pink-500' },
+  const tigerIcons = [
+    { Icon: Crown, color: 'text-tiger-yellow', size: 'w-8 h-8' },
+    { Icon: Flame, color: 'text-tiger-orange', size: 'w-7 h-7' },
+    { Icon: Zap, color: 'text-tiger-yellow', size: 'w-6 h-6' },
   ];
 
   return (
     <>
-      {/* Stars container */}
-      <div id="stars-container" className="fixed inset-0 pointer-events-none z-0"></div>
+      {/* Paw prints container */}
+      <div id="paw-prints-container" className="fixed inset-0 pointer-events-none z-0"></div>
 
-      {/* Floating icons */}
+      {/* Floating tiger icons */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        {icons.map((item, index) => (
+        {tigerIcons.map((item, index) => (
           <div
             key={index}
-            className="coin"
+            className="paw-print"
             style={{
-              left: `${10 + index * 15}%`,
-              animationDelay: `${index * 1.5}s`,
+              left: `${15 + index * 30}%`,
+              animationDelay: `${index * 2}s`,
+              animationDuration: '10s',
             }}
           >
-            <item.Icon className={`w-full h-full ${item.color} opacity-70`} />
+            <item.Icon className={`${item.size} ${item.color} opacity-30`} />
           </div>
         ))}
       </div>
 
-      {/* Gradient orbs */}
+      {/* Floating tiger emojis */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-slow"></div>
-        <div className="absolute top-40 right-10 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-slow" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute bottom-20 left-1/2 w-96 h-96 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-slow" style={{ animationDelay: '2s' }}></div>
+        {['🐯', '🔥', '👑', '⚡'].map((emoji, index) => (
+          <div
+            key={emoji + index}
+            className="paw-print"
+            style={{
+              left: `${20 + index * 20}%`,
+              animationDelay: `${index * 1.5 + 1}s`,
+              animationDuration: '12s',
+              fontSize: '40px',
+            }}
+          >
+            {emoji}
+          </div>
+        ))}
+      </div>
+
+      {/* Gradient orbs - Tiger themed */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-20 left-10 w-96 h-96 bg-tiger-orange rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-bounce-slow"></div>
+        <div className="absolute top-40 right-10 w-96 h-96 bg-tiger-yellow rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-bounce-slow" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-20 left-1/2 w-96 h-96 bg-tiger-darkOrange rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-bounce-slow" style={{ animationDelay: '2s' }}></div>
+      </div>
+
+      {/* Tiger stripe overlay */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 opacity-5">
+          <div className="h-full w-full" style={{
+            backgroundImage: `repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 80px,
+              rgba(255, 140, 0, 0.3) 80px,
+              rgba(255, 140, 0, 0.3) 82px
+            )`
+          }}></div>
+        </div>
       </div>
     </>
   );

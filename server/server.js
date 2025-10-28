@@ -32,7 +32,7 @@ app.use((req, res, next) => {
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
-    message: 'Sales Scoreboard API is running',
+    message: 'FTD Scoreboard API is running',
     timestamp: new Date().toISOString()
   });
 });
@@ -61,7 +61,14 @@ const connectDB = async () => {
   try {
     console.log("⏳ Trying to connect to MongoDB...");
     
-    // ✅ תיקון: השתמש ב-MONGODB_URI במקום MONGO_URI
+    // Check if MONGODB_URI exists
+    if (!process.env.MONGODB_URI) {
+      console.error('❌ ERROR: MONGODB_URI is not defined in .env file');
+      console.log('Please create a .env file in the server directory with:');
+      console.log('MONGODB_URI=your_mongodb_connection_string');
+      process.exit(1);
+    }
+    
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -79,7 +86,7 @@ const connectDB = async () => {
         email: 'admin@company.com',
         password: 'admin123',
         isAdmin: true,
-        sales: 0,
+        ftds: 0,
         profilePicture: 'https://ui-avatars.com/api/?background=4F46E5&color=fff&name=Admin'
       });
       
@@ -87,18 +94,18 @@ const connectDB = async () => {
       console.log('✅ Default admin user created:');
       console.log('   Email: admin@company.com');
       console.log('   Password: admin123');
-      console.log('⚠️  IMPORTANT: Change this password in production!');
+      console.log('   ⚠️  IMPORTANT: Change this password in production!');
     }
 
     // Create sample users if database is empty
     const userCount = await User.countDocuments();
     if (userCount <= 1) {
       const sampleUsers = [
-        { name: 'Sarah Johnson', email: 'sarah@company.com', password: 'password123', sales: 145000 },
-        { name: 'Mike Chen', email: 'mike@company.com', password: 'password123', sales: 132000 },
-        { name: 'Emily Rodriguez', email: 'emily@company.com', password: 'password123', sales: 128000 },
-        { name: 'David Kim', email: 'david@company.com', password: 'password123', sales: 115000 },
-        { name: 'Lisa Anderson', email: 'lisa@company.com', password: 'password123', sales: 98000 },
+        { name: 'Sarah Johnson', email: 'sarah@company.com', password: 'password123', ftds: 5 },
+        { name: 'Mike Chen', email: 'mike@company.com', password: 'password123', ftds: 8 },
+        { name: 'Emily Rodriguez', email: 'emily@company.com', password: 'password123', ftds: 12 },
+        { name: 'David Kim', email: 'david@company.com', password: 'password123', ftds: 15 },
+        { name: 'Lisa Anderson', email: 'lisa@company.com', password: 'password123', ftds: 20 },
       ];
 
       for (const userData of sampleUsers) {
@@ -113,7 +120,12 @@ const connectDB = async () => {
     }
     
   } catch (error) {
-    console.error('❌ MongoDB connection error:', error);
+    console.error('❌ MongoDB connection error:', error.message);
+    console.log('\n📝 Troubleshooting steps:');
+    console.log('1. Check if .env file exists in server directory');
+    console.log('2. Verify MONGODB_URI is set correctly');
+    console.log('3. Make sure MongoDB Atlas allows connections from your IP');
+    console.log('4. Check if your MongoDB credentials are correct');
     process.exit(1);
   }
 };
@@ -126,9 +138,10 @@ const startServer = async () => {
   
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`
-✅ Sales Scoreboard API Server is Listening
-Port: ${PORT}
-Environment: ${process.env.NODE_ENV || 'development'}
+✅ FTD Scoreboard API Server is Running
+🌐 Port: ${PORT}
+📦 Environment: ${process.env.NODE_ENV || 'development'}
+🔗 Health Check: http://localhost:${PORT}/health
     `);
   });
 };
@@ -137,7 +150,7 @@ startServer();
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Promise Rejection:', err);
+  console.error('❌ Unhandled Promise Rejection:', err);
   process.exit(1);
 });
 

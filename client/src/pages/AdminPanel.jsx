@@ -4,6 +4,7 @@ import {
   Users,
   Plus,
   Trash2,
+  Target,
   RefreshCw,
   AlertCircle,
   CheckCircle,
@@ -15,6 +16,7 @@ import {
   Upload,
   User,
   Crown,
+  PlusCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -42,10 +44,9 @@ const AVATAR_GALLERY = [
   'https://api.dicebear.com/7.x/personas/svg?seed=Person4',
 ];
 
-// ✅ תיקון: פונקציית דחיסת תמונות משופרת
+// Image compression function
 const compressImage = (file, maxWidth = 200, maxHeight = 200, quality = 0.7) => {
   return new Promise((resolve, reject) => {
-    // Validate file
     if (!file) {
       reject(new Error('No file provided'));
       return;
@@ -56,7 +57,6 @@ const compressImage = (file, maxWidth = 200, maxHeight = 200, quality = 0.7) => 
       return;
     }
 
-    // Check file size (max 10MB)
     const maxFileSize = 10 * 1024 * 1024;
     if (file.size > maxFileSize) {
       reject(new Error('File is too large (max 10MB)'));
@@ -65,12 +65,16 @@ const compressImage = (file, maxWidth = 200, maxHeight = 200, quality = 0.7) => 
 
     const reader = new FileReader();
     
-    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.onerror = () => {
+      reject(new Error('Failed to read file'));
+    };
     
     reader.onload = (event) => {
       const img = new Image();
       
-      img.onerror = () => reject(new Error('Failed to load image'));
+      img.onerror = () => {
+        reject(new Error('Failed to load image'));
+      };
       
       img.onload = () => {
         try {
@@ -78,32 +82,53 @@ const compressImage = (file, maxWidth = 200, maxHeight = 200, quality = 0.7) => 
           let width = img.width;
           let height = img.height;
 
-          // Calculate new dimensions
           if (width > height) {
             if (width > maxWidth) {
-              height = Math.round((height * maxWidth) / width);
+              height *= maxWidth / width;
               width = maxWidth;
             }
           } else {
             if (height > maxHeight) {
-              width = Math.round((width * maxHeight) / height);
+              width *= maxHeight / height;
               height = maxHeight;
             }
           }
 
           canvas.width = width;
           canvas.height = height;
-          
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, width, height);
           
-          // Convert to base64
-          try {
-            const dataUrl = canvas.toDataURL('image/jpeg', quality);
-            resolve(dataUrl);
-          } catch (err) {
-            reject(new Error('Failed to convert image: ' + err.message));
-          }
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error('Failed to compress image'));
+                return;
+              }
+
+              try {
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                const compressedReader = new FileReader();
+                
+                compressedReader.onerror = () => {
+                  reject(new Error('Failed to read compressed image'));
+                };
+                
+                compressedReader.onloadend = () => {
+                  resolve(compressedReader.result);
+                };
+                
+                compressedReader.readAsDataURL(compressedFile);
+              } catch (error) {
+                reject(error);
+              }
+            },
+            'image/jpeg',
+            quality
+          );
         } catch (error) {
           reject(error);
         }
@@ -120,7 +145,7 @@ const AdminPanel = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingSales, setEditingSales] = useState(null);
+  const [editingFTDs, setEditingFTDs] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [editingUserName, setEditingUserName] = useState('');
   const [showAvatarModal, setShowAvatarModal] = useState(null);
@@ -147,14 +172,24 @@ const AdminPanel = () => {
     setTimeout(() => setMessage({ type: '', text: '' }), 5000);
   };
 
-  const handleUpdateSales = async (userId, newSales) => {
+  const handleUpdateFTDs = async (userId, newFTDs) => {
     try {
-      await usersAPI.updateSales(userId, parseFloat(newSales));
+      await usersAPI.updateFTDs(userId, parseFloat(newFTDs));
       await fetchUsers();
-      setEditingSales(null);
-      showMessage('success', '✅ Sales updated successfully!');
+      setEditingFTDs(null);
+      showMessage('success', '✅ FTD\'s updated successfully!');
     } catch (err) {
-      showMessage('error', '❌ Failed to update sales');
+      showMessage('error', '❌ Failed to update FTD\'s');
+    }
+  };
+
+  const handleIncrementFTD = async (userId) => {
+    try {
+      await usersAPI.incrementFTD(userId);
+      await fetchUsers();
+      showMessage('success', '✅ Added +1 FTD!');
+    } catch (err) {
+      showMessage('error', '❌ Failed to add FTD');
     }
   };
 
@@ -169,7 +204,7 @@ const AdminPanel = () => {
       setUsers(users.map(u => u.id === userId ? { ...u, name: newName } : u));
       setEditingUser(null);
       setEditingUserName('');
-      showMessage('success', '✅ User name updated locally');
+      showMessage('success', '✅ User name updated! (Note: This updates locally only)');
     } catch (err) {
       showMessage('error', '❌ Failed to update user name');
     }
@@ -184,10 +219,7 @@ const AdminPanel = () => {
         return;
       }
 
-      // ✅ תיקון: השתמש ב-API מה-services במקום fetch ישיר
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
-      
-      const response = await fetch(`${apiUrl}/users/${userId}/profile`, {
+      const response = await fetch(`http://localhost:4000/api/users/${userId}/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -203,7 +235,9 @@ const AdminPanel = () => {
         throw new Error(errorData.message || 'Failed to update avatar');
       }
 
-      await fetchUsers();
+      const updatedUser = await response.json();
+
+      setUsers(users.map(u => u.id === userId ? { ...u, profilePicture: newAvatar } : u));
       setShowAvatarModal(null);
       showMessage('success', '✅ Avatar updated successfully!');
     } catch (err) {
@@ -225,7 +259,7 @@ const AdminPanel = () => {
   };
 
   const handleResetLeaderboard = async () => {
-    if (!window.confirm('⚠️ Are you sure you want to reset all sales to zero?')) return;
+    if (!window.confirm('⚠️ Are you sure you want to reset all FTD\'s to zero?')) return;
 
     try {
       await usersAPI.resetLeaderboard();
@@ -234,14 +268,6 @@ const AdminPanel = () => {
     } catch (err) {
       showMessage('error', '❌ Failed to reset leaderboard');
     }
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(amount);
   };
 
   const startEditingName = (userId, currentName) => {
@@ -269,7 +295,7 @@ const AdminPanel = () => {
             <Users className="w-10 h-10 text-purple-600" />
             Admin Panel
           </h1>
-          <p className="text-gray-600 font-medium">🎯 Manage users and sales data</p>
+          <p className="text-gray-600 font-medium">🎯 Manage users and FTD data</p>
         </div>
 
         {/* Message Alert */}
@@ -323,7 +349,7 @@ const AdminPanel = () => {
                     📧 Email
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-bold text-purple-700 uppercase tracking-wider">
-                    💰 Sales
+                    🎯 FTD's
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-bold text-purple-700 uppercase tracking-wider">
                     🎭 Role
@@ -404,15 +430,15 @@ const AdminPanel = () => {
                       {user.email}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {editingSales === user.id ? (
+                      {editingFTDs === user.id ? (
                         <div className="flex items-center gap-2">
                           <input
                             type="number"
-                            defaultValue={user.sales}
+                            defaultValue={user.ftds}
                             className="input-field w-32 py-1 px-2 text-sm"
                             onKeyDown={(e) => {
                               if (e.key === 'Enter') {
-                                handleUpdateSales(user.id, e.target.value);
+                                handleUpdateFTDs(user.id, e.target.value);
                               }
                             }}
                             autoFocus
@@ -420,14 +446,14 @@ const AdminPanel = () => {
                           <button
                             onClick={(e) => {
                               const input = e.target.parentElement.querySelector('input');
-                              handleUpdateSales(user.id, input.value);
+                              handleUpdateFTDs(user.id, input.value);
                             }}
                             className="text-green-600 hover:text-green-700"
                           >
                             <Save className="w-5 h-5" />
                           </button>
                           <button
-                            onClick={() => setEditingSales(null)}
+                            onClick={() => setEditingFTDs(null)}
                             className="text-red-600 hover:text-red-700"
                           >
                             <X className="w-5 h-5" />
@@ -435,14 +461,23 @@ const AdminPanel = () => {
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-purple-600">
-                            {formatCurrency(user.sales)}
+                          <span className="font-semibold text-primary-600">
+                            {user.ftds} FTD's
                           </span>
                           <button
-                            onClick={() => setEditingSales(user.id)}
+                            onClick={() => setEditingFTDs(user.id)}
                             className="text-gray-400 hover:text-purple-600 transition-colors"
+                            title="Edit FTD's"
                           >
                             <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleIncrementFTD(user.id)}
+                            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 transition-all shadow-md hover:shadow-lg"
+                            title="Add +1 FTD (Office Feature)"
+                          >
+                            <PlusCircle className="w-3 h-3" />
+                            +1
                           </button>
                         </div>
                       )}
@@ -515,7 +550,7 @@ const AdminPanel = () => {
               setUsers(users.map(u => 
                 u.id === showRoleModal ? { ...u, isAdmin } : u
               ));
-              showMessage('success', '✅ Role updated locally');
+              showMessage('success', '✅ Role updated! (Note: This updates locally only)');
               setShowRoleModal(null);
             }}
           />
@@ -525,30 +560,27 @@ const AdminPanel = () => {
   );
 };
 
-// Avatar Picker Modal with improved compression
+// Avatar Picker Modal with compression
 const AvatarPickerModal = ({ userId, currentAvatar, currentUserName, onClose, onSelect }) => {
   const [customUrl, setCustomUrl] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [isCompressing, setIsCompressing] = useState(false);
-  const [error, setError] = useState('');
 
   const handleFileSelect = async (e) => {
     const file = e.target.files[0];
-    if (!file) return;
-
-    setIsCompressing(true);
-    setError('');
-    
-    try {
-      const compressed = await compressImage(file);
-      setSelectedFile(file);
-      setPreview(compressed);
-    } catch (error) {
-      console.error('Error compressing image:', error);
-      setError(error.message || 'Failed to process image');
-    } finally {
-      setIsCompressing(false);
+    if (file) {
+      setIsCompressing(true);
+      try {
+        const compressed = await compressImage(file);
+        setSelectedFile(file);
+        setPreview(compressed);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        alert('Failed to process image. Please try a different file.');
+      } finally {
+        setIsCompressing(false);
+      }
     }
   };
 
@@ -580,13 +612,6 @@ const AvatarPickerModal = ({ userId, currentAvatar, currentUserName, onClose, on
             <Upload className="w-5 h-5" />
             Upload Custom Image
           </h3>
-          
-          {error && (
-            <div className="mb-3 p-3 bg-red-50 border-2 border-red-200 rounded-lg">
-              <p className="text-sm text-red-700 font-medium">{error}</p>
-            </div>
-          )}
-          
           <input
             type="file"
             accept="image/*"
@@ -594,14 +619,12 @@ const AvatarPickerModal = ({ userId, currentAvatar, currentUserName, onClose, on
             className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
             disabled={isCompressing}
           />
-          
           {isCompressing && (
             <div className="mt-3 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
               <p className="text-sm text-gray-600">Compressing image...</p>
             </div>
           )}
-          
           {preview && !isCompressing && (
             <div className="mt-3 text-center">
               <img src={preview} alt="Preview" className="w-20 h-20 rounded-full mx-auto border-2 border-purple-300" />
@@ -718,7 +741,7 @@ const RolePickerModal = ({ user, onClose, onUpdate }) => {
                 <Crown className="w-8 h-8 text-purple-600" />
                 <div className="text-left">
                   <p className="font-bold text-gray-800">👑 Admin</p>
-                  <p className="text-sm text-gray-600">Full access - Can manage users and sales data</p>
+                  <p className="text-sm text-gray-600">Full access - Can manage users and FTD data</p>
                 </div>
               </div>
             </button>

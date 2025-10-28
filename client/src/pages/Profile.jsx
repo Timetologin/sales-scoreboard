@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usersAPI } from '../services/api';
-import { User, Mail, Trophy, TrendingUp, Calendar, Edit2, Save, X } from 'lucide-react';
+import { User, Mail, Trophy, Target, Calendar, Edit2, Save, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Profile = () => {
@@ -65,14 +65,6 @@ const Profile = () => {
       month: 'long',
       day: 'numeric',
     });
-  };
-
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-    }).format(amount);
   };
 
   if (loading) {
@@ -210,14 +202,17 @@ const Profile = () => {
                 <p className="text-lg text-gray-900">{profile.email}</p>
               </div>
 
-              {/* Sales */}
+              {/* FTDs */}
               <div>
                 <label className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
-                  <TrendingUp className="w-4 h-4" />
-                  Total Sales
+                  <Target className="w-4 h-4" />
+                  Total FTD's (First Time Deposits)
                 </label>
                 <p className="text-3xl font-bold text-primary-600">
-                  {formatCurrency(profile.sales)}
+                  {profile.ftds} FTD's
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  {profile.rank === 1 ? '🏆 You are the leader!' : `${profile.ftds - (profile.leaderFtds || 0)} FTD's from the leader`}
                 </p>
               </div>
 
@@ -268,7 +263,7 @@ const Profile = () => {
           >
             <div className="flex items-center gap-4">
               <div className="p-3 bg-green-100 rounded-lg">
-                <TrendingUp className="w-8 h-8 text-green-600" />
+                <Target className="w-8 h-8 text-green-600" />
               </div>
               <div>
                 <p className="text-sm text-gray-600">Last Updated</p>

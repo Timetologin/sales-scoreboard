@@ -8,58 +8,37 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#fdf4ff',
-          100: '#fae8ff',
-          200: '#f5d0fe',
-          300: '#f0abfc',
-          400: '#e879f9',
-          500: '#d946ef',
-          600: '#c026d3',
-          700: '#a21caf',
-          800: '#86198f',
-          900: '#701a75',
+          50: '#fff8e1',
+          100: '#ffecb3',
+          200: '#ffe082',
+          300: '#ffd54f',
+          400: '#ffca28',
+          500: '#ffc107',
+          600: '#ffb300',
+          700: '#ffa000',
+          800: '#ff8f00',
+          900: '#ff6f00',
         },
-        secondary: {
-          50: '#ecfeff',
-          100: '#cffafe',
-          200: '#a5f3fc',
-          300: '#67e8f9',
-          400: '#22d3ee',
-          500: '#06b6d4',
-          600: '#0891b2',
-          700: '#0e7490',
-          800: '#155e75',
-          900: '#164e63',
+        tiger: {
+          orange: '#FF9500',
+          darkOrange: '#FF7A00',
+          black: '#2a2a2a',
+          stripe: '#3d3d3d',
+          yellow: '#FFD700',
+          amber: '#FFB347',
         },
-        accent: {
-          50: '#fff7ed',
-          100: '#ffedd5',
-          200: '#fed7aa',
-          300: '#fdba74',
-          400: '#fb923c',
-          500: '#f97316',
-          600: '#ea580c',
-          700: '#c2410c',
-          800: '#9a3412',
-          900: '#7c2d12',
-        },
-        success: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-        },
-        gold: {
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
+        dark: {
+          bg: '#1a1a1a',
+          card: '#2a2a2a',
+          hover: '#3d3d3d',
+          border: '#4a4a4a',
         }
+      },
+      backgroundImage: {
+        'tiger-stripes': "repeating-linear-gradient(90deg, #FF9500 0px, #FF9500 20px, #3d3d3d 20px, #3d3d3d 40px)",
+        'tiger-gradient': 'linear-gradient(135deg, #FF9500 0%, #FF7A00 50%, #3d3d3d 100%)',
+        'dark-tiger': 'linear-gradient(135deg, #2a2a2a 0%, #3d3d3d 100%)',
+        'alpha-tiger': 'linear-gradient(135deg, #FFD700 0%, #FF9500 50%, #3d3d3d 100%)',
       },
       animation: {
         'fadeIn': 'fadeIn 0.5s ease-in',
@@ -67,6 +46,8 @@ export default {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'bounce-slow': 'bounce 2s infinite',
         'wiggle': 'wiggle 1s ease-in-out infinite',
+        'prowl': 'prowl 4s ease-in-out infinite',
+        'roar': 'roar 2s ease-in-out infinite',
       },
       keyframes: {
         fadeIn: {
@@ -80,12 +61,16 @@ export default {
         wiggle: {
           '0%, 100%': { transform: 'rotate(-3deg)' },
           '50%': { transform: 'rotate(3deg)' },
+        },
+        prowl: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '50%': { transform: 'translateX(10px)' },
+        },
+        roar: {
+          '0%, 100%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.05)' },
         }
       },
-      backgroundImage: {
-        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'rainbow': 'linear-gradient(to right, #f87171, #fb923c, #fbbf24, #a3e635, #34d399, #22d3ee, #a78bfa, #f472b6)',
-      }
     },
   },
   plugins: [],

@@ -5,13 +5,13 @@ const { auth, adminAuth } = require('../middleware/auth');
 const router = express.Router();
 
 // @route   GET /api/users/leaderboard
-// @desc    Get all users sorted by sales
+// @desc    Get all users sorted by FTDs (ascending - lower is better)
 // @access  Private
 router.get('/leaderboard', auth, async (req, res) => {
   try {
     const users = await User.find()
       .select('-password')
-      .sort({ sales: -1 });
+      .sort({ ftds: 1 }); // 1 = ascending (lower FTDs = better rank)
 
     const leaderboard = users.map((user, index) => ({
       ...user.getPublicProfile(),
@@ -36,8 +36,8 @@ router.get('/profile/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Get user's rank
-    const allUsers = await User.find().sort({ sales: -1 });
+    // Get user's rank (lower FTDs = better rank)
+    const allUsers = await User.find().sort({ ftds: 1 });
     const rank = allUsers.findIndex(u => u._id.toString() === user._id.toString()) + 1;
 
     res.json({
@@ -96,15 +96,15 @@ router.put('/:id/profile', auth, adminAuth, async (req, res) => {
   }
 });
 
-// @route   PUT /api/users/:id/sales
-// @desc    Update user sales (Admin only)
+// @route   PUT /api/users/:id/ftds
+// @desc    Update user FTDs (Admin only)
 // @access  Private + Admin
-router.put('/:id/sales', auth, adminAuth, async (req, res) => {
+router.put('/:id/ftds', auth, adminAuth, async (req, res) => {
   try {
-    const { sales } = req.body;
+    const { ftds } = req.body;
     
-    if (typeof sales !== 'number' || sales < 0) {
-      return res.status(400).json({ message: 'Invalid sales value' });
+    if (typeof ftds !== 'number' || ftds < 0) {
+      return res.status(400).json({ message: 'Invalid FTDs value' });
     }
 
     const user = await User.findById(req.params.id);
@@ -113,26 +113,26 @@ router.put('/:id/sales', auth, adminAuth, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    user.sales = sales;
+    user.ftds = ftds;
     user.lastUpdated = Date.now();
     await user.save();
 
     res.json(user.getPublicProfile());
   } catch (error) {
-    console.error('Update sales error:', error);
-    res.status(500).json({ message: 'Server error updating sales' });
+    console.error('Update FTDs error:', error);
+    res.status(500).json({ message: 'Server error updating FTDs' });
   }
 });
 
-// @route   POST /api/users/:id/add-sales
-// @desc    Add to user sales (Admin only)
+// @route   POST /api/users/:id/add-ftds
+// @desc    Add to user FTDs (Admin only)
 // @access  Private + Admin
-router.post('/:id/add-sales', auth, adminAuth, async (req, res) => {
+router.post('/:id/add-ftds', auth, adminAuth, async (req, res) => {
   try {
     const { amount } = req.body;
     
     if (typeof amount !== 'number' || amount < 0) {
-      return res.status(400).json({ message: 'Invalid sales amount' });
+      return res.status(400).json({ message: 'Invalid FTDs amount' });
     }
 
     const user = await User.findById(req.params.id);
@@ -141,14 +141,36 @@ router.post('/:id/add-sales', auth, adminAuth, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    user.sales += amount;
+    user.ftds += amount;
     user.lastUpdated = Date.now();
     await user.save();
 
     res.json(user.getPublicProfile());
   } catch (error) {
-    console.error('Add sales error:', error);
-    res.status(500).json({ message: 'Server error adding sales' });
+    console.error('Add FTDs error:', error);
+    res.status(500).json({ message: 'Server error adding FTDs' });
+  }
+});
+
+// @route   POST /api/users/:id/increment-ftd
+// @desc    Add +1 FTD (Admin only) - Special office feature
+// @access  Private + Admin
+router.post('/:id/increment-ftd', auth, adminAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.ftds += 1;
+    user.lastUpdated = Date.now();
+    await user.save();
+
+    res.json(user.getPublicProfile());
+  } catch (error) {
+    console.error('Increment FTD error:', error);
+    res.status(500).json({ message: 'Server error incrementing FTD' });
   }
 });
 
@@ -222,11 +244,11 @@ router.delete('/:id', auth, adminAuth, async (req, res) => {
 });
 
 // @route   POST /api/users/reset-leaderboard
-// @desc    Reset all sales to zero (Admin only)
+// @desc    Reset all FTDs to zero (Admin only)
 // @access  Private + Admin
 router.post('/reset-leaderboard', auth, adminAuth, async (req, res) => {
   try {
-    await User.updateMany({}, { sales: 0, lastUpdated: Date.now() });
+    await User.updateMany({}, { ftds: 0, lastUpdated: Date.now() });
     res.json({ message: 'Leaderboard reset successfully' });
   } catch (error) {
     console.error('Reset leaderboard error:', error);
