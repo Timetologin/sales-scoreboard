@@ -5,8 +5,8 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: cd server && npm install
-    startCommand: cd server && npm start
+    buildCommand: npm install
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -23,6 +23,7 @@ services:
       - key: OPENAI_API_KEY
         sync: false
     healthCheckPath: /health
+    rootDir: server
 
   # Frontend Client Service
   - type: web
@@ -30,11 +31,12 @@ services:
     env: static
     region: oregon
     plan: free
-    buildCommand: cd client && npm install && npm run build
-    staticPublishPath: ./client/dist
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
     envVars:
       - key: VITE_API_URL
         value: https://sales-scoreboard-api.onrender.com/api
+    rootDir: client
     routes:
       - type: rewrite
         source: /*
