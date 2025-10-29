@@ -5,17 +5,17 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 4000
       - key: MONGODB_URI
-        sync: false
+        value: mongodb+srv://GGman:oujB8DjFIVAyhp1z@salesscoreboard111.8akbx6p.mongodb.net/sales-scoreboard?retryWrites=true&w=majority
       - key: JWT_SECRET
-        generateValue: true
+        value: my_super_secret_jwt_key_that_is_at_least_32_characters_long_for_security
       - key: CLIENT_URL
         value: https://sales-scoreboard-client.onrender.com
       - key: ANTHROPIC_API_KEY
@@ -23,7 +23,6 @@ services:
       - key: OPENAI_API_KEY
         sync: false
     healthCheckPath: /health
-    rootDir: server
 
   # Frontend Client Service
   - type: web
@@ -31,12 +30,11 @@ services:
     env: static
     region: oregon
     plan: free
-    buildCommand: npm install && npm run build
-    staticPublishPath: ./dist
+    buildCommand: cd client && npm install && npm run build
+    staticPublishPath: ./client/dist
     envVars:
       - key: VITE_API_URL
         value: https://sales-scoreboard-api.onrender.com/api
-    rootDir: client
     routes:
       - type: rewrite
         source: /*
