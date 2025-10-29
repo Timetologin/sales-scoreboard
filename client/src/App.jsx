@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import Navigation from './components/Navigation';
@@ -12,11 +12,19 @@ import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
 import About from './pages/About';
 
+// Component to conditionally show background effects
+const ConditionalBackgroundEffects = () => {
+  const location = useLocation();
+  const showBackground = !['/login', '/register'].includes(location.pathname);
+  
+  return showBackground ? <BackgroundEffects /> : null;
+};
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <BackgroundEffects />
+        <ConditionalBackgroundEffects />
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
