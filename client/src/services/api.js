@@ -52,6 +52,11 @@ export const usersAPI = {
   updatePlusOnes: (id, plusOnes) => api.put(`/users/${id}/plusones`, { plusOnes }),
   incrementPlusOne: (id) => api.post(`/users/${id}/increment-plusone`),
   
+  // Admin user management endpoints - NEW!
+  editUser: (id, userData) => api.put(`/users/${id}/edit`, userData),
+  resetPassword: (id, newPassword) => api.put(`/users/${id}/reset-password`, { newPassword }),
+  toggleAdmin: (id) => api.put(`/users/${id}/toggle-admin`),
+  
   // Admin endpoints
   getAllUsers: () => api.get("/users/all"),
   createUser: (userData) => api.post("/users/create", userData),
