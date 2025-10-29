@@ -174,6 +174,56 @@ router.post('/:id/increment-ftd', auth, adminAuth, async (req, res) => {
   }
 });
 
+// @route   POST /api/users/:id/increment-plusone
+// @desc    Add +1 to Plus Ones counter (Admin only)
+// @access  Private + Admin
+router.post('/:id/increment-plusone', auth, adminAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.plusOnes += 1;
+    user.lastUpdated = Date.now();
+    await user.save();
+
+    res.json(user.getPublicProfile());
+  } catch (error) {
+    console.error('Increment Plus One error:', error);
+    res.status(500).json({ message: 'Server error incrementing Plus One' });
+  }
+});
+
+// @route   PUT /api/users/:id/plusones
+// @desc    Update user Plus Ones (Admin only)
+// @access  Private + Admin
+router.put('/:id/plusones', auth, adminAuth, async (req, res) => {
+  try {
+    const { plusOnes } = req.body;
+    
+    if (typeof plusOnes !== 'number' || plusOnes < 0) {
+      return res.status(400).json({ message: 'Invalid Plus Ones value' });
+    }
+
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.plusOnes = plusOnes;
+    user.lastUpdated = Date.now();
+    await user.save();
+
+    res.json(user.getPublicProfile());
+  } catch (error) {
+    console.error('Update Plus Ones error:', error);
+    res.status(500).json({ message: 'Server error updating Plus Ones' });
+  }
+});
+
 // @route   GET /api/users/all
 // @desc    Get all users (Admin only)
 // @access  Private + Admin
@@ -244,11 +294,11 @@ router.delete('/:id', auth, adminAuth, async (req, res) => {
 });
 
 // @route   POST /api/users/reset-leaderboard
-// @desc    Reset all FTDs to zero (Admin only)
+// @desc    Reset all FTDs and Plus Ones to zero (Admin only)
 // @access  Private + Admin
 router.post('/reset-leaderboard', auth, adminAuth, async (req, res) => {
   try {
-    await User.updateMany({}, { ftds: 0, lastUpdated: Date.now() });
+    await User.updateMany({}, { ftds: 0, plusOnes: 0, lastUpdated: Date.now() });
     res.json({ message: 'Leaderboard reset successfully' });
   } catch (error) {
     console.error('Reset leaderboard error:', error);

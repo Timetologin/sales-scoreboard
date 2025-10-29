@@ -28,6 +28,11 @@ const userSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
+  plusOnes: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   isAdmin: {
     type: Boolean,
     default: false
@@ -70,6 +75,7 @@ userSchema.methods.getPublicProfile = function() {
     email: this.email,
     profilePicture: this.profilePicture,
     ftds: this.ftds,
+    plusOnes: this.plusOnes,
     isAdmin: this.isAdmin,
     createdAt: this.createdAt,
     lastUpdated: this.lastUpdated
