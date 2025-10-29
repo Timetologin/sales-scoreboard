@@ -1,6 +1,7 @@
 const express = require('express');
 const User = require('../models/User');
 const { auth, adminAuth } = require('../middleware/auth');
+const bcrypt = require('bcryptjs');
 
 const router = express.Router();
 
@@ -93,6 +94,107 @@ router.put('/:id/profile', auth, adminAuth, async (req, res) => {
   } catch (error) {
     console.error('Update user profile error:', error);
     res.status(500).json({ message: 'Server error updating user profile' });
+  }
+});
+
+// @route   PUT /api/users/:id/edit
+// @desc    Edit user details - name, email, role (Admin only)
+// @access  Private + Admin
+router.put('/:id/edit', auth, adminAuth, async (req, res) => {
+  try {
+    const { name, email, isAdmin } = req.body;
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Prevent admin from removing their own admin status
+    if (user._id.toString() === req.user._id.toString() && isAdmin === false) {
+      return res.status(400).json({ message: 'Cannot remove your own admin privileges' });
+    }
+
+    // Check if email is already taken by another user
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ message: 'Email already in use by another user' });
+      }
+      user.email = email;
+    }
+
+    if (name) user.name = name;
+    if (typeof isAdmin === 'boolean') user.isAdmin = isAdmin;
+    user.lastUpdated = Date.now();
+
+    await user.save();
+
+    res.json(user.getPublicProfile());
+  } catch (error) {
+    console.error('Edit user error:', error);
+    res.status(500).json({ message: 'Server error editing user' });
+  }
+});
+
+// @route   PUT /api/users/:id/reset-password
+// @desc    Reset user password (Admin only)
+// @access  Private + Admin
+router.put('/:id/reset-password', auth, adminAuth, async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    user.lastUpdated = Date.now();
+
+    await user.save();
+
+    res.json({ 
+      message: 'Password reset successfully',
+      user: user.getPublicProfile()
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ message: 'Server error resetting password' });
+  }
+});
+
+// @route   PUT /api/users/:id/toggle-admin
+// @desc    Toggle admin status (Admin only)
+// @access  Private + Admin
+router.put('/:id/toggle-admin', auth, adminAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Prevent admin from removing their own admin status
+    if (user._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({ message: 'Cannot modify your own admin status' });
+    }
+
+    user.isAdmin = !user.isAdmin;
+    user.lastUpdated = Date.now();
+
+    await user.save();
+
+    res.json(user.getPublicProfile());
+  } catch (error) {
+    console.error('Toggle admin error:', error);
+    res.status(500).json({ message: 'Server error toggling admin status' });
   }
 });
 
