@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usersAPI } from '../services/api';
-import { User, Mail, Trophy, Target, Calendar, Edit2, Save, X } from 'lucide-react';
+import { User, Mail, Trophy, Target, Calendar, Edit2, Save, X, Award } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Profile = () => {
@@ -69,10 +69,10 @@ const Profile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading profile...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-tiger-orange mx-auto mb-4"></div>
+          <p className="text-tiger-orange font-semibold">Loading profile...</p>
         </div>
       </div>
     );
@@ -80,29 +80,29 @@ const Profile = () => {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-600">Profile not found</p>
+          <p className="text-tiger-orange font-semibold">Profile not found</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="card"
+          className="card-alpha prowl-effect"
         >
           {/* Header */}
           <div className="flex justify-between items-start mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
+            <h1 className="text-4xl font-extrabold alpha-text">My Profile</h1>
             {!editing ? (
               <button
                 onClick={() => setEditing(true)}
-                className="btn-primary flex items-center gap-2"
+                className="btn-alpha flex items-center gap-2"
               >
                 <Edit2 className="w-4 h-4" />
                 Edit Profile
@@ -112,7 +112,7 @@ const Profile = () => {
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="btn-primary flex items-center gap-2"
+                  className="btn-alpha flex items-center gap-2"
                 >
                   <Save className="w-4 h-4" />
                   {saving ? 'Saving...' : 'Save'}
@@ -136,11 +136,11 @@ const Profile = () => {
                 <img
                   src={editing ? formData.profilePicture : profile.profilePicture}
                   alt={profile.name}
-                  className="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-primary-100 shadow-lg"
+                  className="w-40 h-40 rounded-full mx-auto mb-4 object-cover border-4 border-tiger-orange shadow-xl"
                 />
                 {editing && (
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-bold text-tiger-orange mb-2">
                       Profile Picture URL
                     </label>
                     <input
@@ -152,8 +152,8 @@ const Profile = () => {
                       className="input-field text-sm"
                       placeholder="https://..."
                     />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Use a direct image URL or UI Avatars
+                    <p className="text-xs text-orange-300 mt-1">
+                      Use a direct image URL
                     </p>
                   </div>
                 )}
@@ -161,11 +161,11 @@ const Profile = () => {
                 {/* Rank Badge */}
                 <div className="inline-block">
                   <div
-                    className={`px-6 py-3 rounded-full font-bold text-lg ${
+                    className={
                       profile.rank === 1
-                        ? 'gold-gradient text-white'
-                        : 'bg-primary-600 text-white'
-                    }`}
+                        ? 'alpha-badge text-2xl'
+                        : 'tiger-badge text-xl'
+                    }
                   >
                     Rank #{profile.rank}
                   </div>
@@ -177,7 +177,7 @@ const Profile = () => {
             <div className="md:col-span-2 space-y-6">
               {/* Name */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
+                <label className="flex items-center gap-2 text-sm font-bold text-tiger-orange mb-2">
                   <User className="w-4 h-4" />
                   Full Name
                 </label>
@@ -189,46 +189,60 @@ const Profile = () => {
                     className="input-field"
                   />
                 ) : (
-                  <p className="text-xl font-semibold text-gray-900">{profile.name}</p>
+                  <p className="text-2xl font-bold text-tiger-yellow">{profile.name}</p>
                 )}
               </div>
 
               {/* Email */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
+                <label className="flex items-center gap-2 text-sm font-bold text-tiger-orange mb-2">
                   <Mail className="w-4 h-4" />
                   Email Address
                 </label>
-                <p className="text-lg text-gray-900">{profile.email}</p>
+                <p className="text-lg text-orange-100">{profile.email}</p>
               </div>
 
               {/* FTDs */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
+                <label className="flex items-center gap-2 text-sm font-bold text-tiger-orange mb-2">
                   <Target className="w-4 h-4" />
                   Total FTD's (First Time Deposits)
                 </label>
-                <p className="text-3xl font-bold text-primary-600">
+                <p className="text-4xl font-extrabold alpha-text">
                   {profile.ftds} FTD's
                 </p>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-orange-300 mt-1">
                   {profile.rank === 1 ? '🏆 You are the leader!' : `${profile.ftds - (profile.leaderFtds || 0)} FTD's from the leader`}
+                </p>
+              </div>
+
+              {/* Plus Ones */}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-bold text-tiger-orange mb-2">
+                  <Award className="w-4 h-4" />
+                  Total Plus Ones
+                </label>
+                <p className="text-4xl font-extrabold text-cyan-400">
+                  {profile.plusOnes || 0} +1's
+                </p>
+                <p className="text-sm text-cyan-300 mt-1">
+                  Special achievements and bonuses
                 </p>
               </div>
 
               {/* Member Since */}
               <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-600 mb-2">
+                <label className="flex items-center gap-2 text-sm font-bold text-tiger-orange mb-2">
                   <Calendar className="w-4 h-4" />
                   Member Since
                 </label>
-                <p className="text-lg text-gray-900">{formatDate(profile.createdAt)}</p>
+                <p className="text-lg text-orange-100">{formatDate(profile.createdAt)}</p>
               </div>
 
               {/* Admin Badge */}
               {profile.isAdmin && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-semibold">
-                  <Trophy className="w-4 h-4" />
+                <div className="inline-flex items-center gap-2 alpha-badge">
+                  <Trophy className="w-5 h-5" />
                   Administrator
                 </div>
               )}
@@ -237,20 +251,37 @@ const Profile = () => {
         </motion.div>
 
         {/* Stats Cards */}
-        <div className="grid md:grid-cols-2 gap-4 mt-6">
+        <div className="grid md:grid-cols-3 gap-4 mt-6">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="card"
+            className="card-alpha prowl-effect"
           >
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary-100 rounded-lg">
-                <Trophy className="w-8 h-8 text-primary-600" />
+              <div className="p-3 bg-tiger-gradient rounded-lg">
+                <Trophy className="w-8 h-8 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Current Rank</p>
-                <p className="text-2xl font-bold text-gray-900">#{profile.rank}</p>
+                <p className="text-sm text-tiger-orange font-bold">Current Rank</p>
+                <p className="text-3xl font-extrabold alpha-text">#{profile.rank}</p>
+              </div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 0 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="card-alpha prowl-effect"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg">
+                <Target className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-tiger-orange font-bold">Total FTD's</p>
+                <p className="text-3xl font-extrabold alpha-text">{profile.ftds}</p>
               </div>
             </div>
           </motion.div>
@@ -258,18 +289,16 @@ const Profile = () => {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="card"
+            transition={{ delay: 0.3 }}
+            className="card-alpha prowl-effect"
           >
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-green-100 rounded-lg">
-                <Target className="w-8 h-8 text-green-600" />
+              <div className="p-3 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-lg">
+                <Award className="w-8 h-8 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Last Updated</p>
-                <p className="text-lg font-semibold text-gray-900">
-                  {formatDate(profile.lastUpdated)}
-                </p>
+                <p className="text-sm text-tiger-orange font-bold">Plus Ones</p>
+                <p className="text-3xl font-extrabold text-cyan-400">{profile.plusOnes || 0}</p>
               </div>
             </div>
           </motion.div>

@@ -42,11 +42,17 @@ export const usersAPI = {
   getLeaderboard: () => api.get("/users/leaderboard"),
   getProfile: (id) => api.get(`/users/profile/${id}`),
   updateProfile: (data) => api.put("/users/profile", data),
+  
+  // FTD's endpoints
   updateFTDs: (id, ftds) => api.put(`/users/${id}/ftds`, { ftds }),
-  updatePlusOnes: (id, plusOnes) => api.put(`/users/${id}/plusones`, { plusOnes }),
   addFTDs: (id, amount) => api.post(`/users/${id}/add-ftds`, { amount }),
   incrementFTD: (id) => api.post(`/users/${id}/increment-ftd`),
+  
+  // Plus Ones endpoints
+  updatePlusOnes: (id, plusOnes) => api.put(`/users/${id}/plusones`, { plusOnes }),
   incrementPlusOne: (id) => api.post(`/users/${id}/increment-plusone`),
+  
+  // Admin endpoints
   getAllUsers: () => api.get("/users/all"),
   createUser: (userData) => api.post("/users/create", userData),
   deleteUser: (id) => api.delete(`/users/${id}`),

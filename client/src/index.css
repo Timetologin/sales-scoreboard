@@ -10,6 +10,7 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
   
+  /* Beautiful unified background gradient */
   body::before {
     content: '';
     position: fixed;
@@ -25,7 +26,7 @@
     z-index: 0;
   }
   
-  /* Tiger stripe pattern overlay - lighter */
+  /* Tiger stripe pattern overlay - very subtle */
   body::after {
     content: '';
     position: fixed;
@@ -37,8 +38,8 @@
       45deg,
       transparent,
       transparent 100px,
-      rgba(255, 149, 0, 0.03) 100px,
-      rgba(255, 149, 0, 0.03) 102px
+      rgba(255, 149, 0, 0.02) 100px,
+      rgba(255, 149, 0, 0.02) 102px
     );
     pointer-events: none;
     z-index: 0;
@@ -68,7 +69,7 @@
   }
 
   .card-alpha {
-    @apply bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 backdrop-blur-sm rounded-xl shadow-[0_0_50px_rgba(255,215,0,0.4)] p-6 transition-all duration-300 border-2 border-tiger-yellow animate-roar;
+    @apply bg-gradient-to-br from-gray-800/95 via-gray-700/95 to-gray-800/95 backdrop-blur-sm rounded-xl shadow-[0_0_50px_rgba(255,215,0,0.3)] p-6 transition-all duration-300 border-2 border-tiger-orange/50;
   }
 
   .input-field {
@@ -80,7 +81,7 @@
   }
 
   .alpha-text {
-    @apply text-transparent bg-clip-text bg-alpha-tiger font-extrabold animate-pulse-slow;
+    @apply text-transparent bg-clip-text bg-alpha-tiger font-extrabold;
   }
 
   .tiger-badge {
@@ -122,10 +123,10 @@
     opacity: 0;
   }
   10% {
-    opacity: 0.6;
+    opacity: 0.4;
   }
   90% {
-    opacity: 0.6;
+    opacity: 0.4;
   }
   100% {
     transform: translateY(-100px) rotate(180deg) scale(1);
@@ -140,7 +141,7 @@
   pointer-events: none;
   z-index: 9999;
   animation: paw-print 10s linear infinite;
-  filter: drop-shadow(0 0 8px rgba(255, 149, 0, 0.6));
+  filter: drop-shadow(0 0 8px rgba(255, 149, 0, 0.4));
 }
 
 /* Glowing tiger eyes effect */
@@ -157,17 +158,6 @@
 
 .tiger-eyes {
   animation: tiger-eyes 3s ease-in-out infinite;
-}
-
-/* Stripe animation for ranks */
-@keyframes stripe-move {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 100% 0%; }
-}
-
-.animated-stripes {
-  background-size: 200% 100%;
-  animation: stripe-move 3s linear infinite;
 }
 
 /* Prowling shadow effect */
@@ -198,4 +188,62 @@
 
 .roar-pulse {
   animation: roar-pulse 1.5s ease-in-out infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in;
+}
+
+/* Slide up animation */
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.5s ease-out;
+}
+
+/* Prowl animation */
+@keyframes prowl {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+}
+
+.animate-prowl {
+  animation: prowl 4s ease-in-out infinite;
+}
+
+/* Roar animation */
+@keyframes roar {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-roar {
+  animation: roar 2s ease-in-out infinite;
 }

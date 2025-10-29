@@ -153,7 +153,7 @@ router.post('/:id/add-ftds', auth, adminAuth, async (req, res) => {
 });
 
 // @route   POST /api/users/:id/increment-ftd
-// @desc    Add +1 FTD (Admin only) - Special office feature
+// @desc    Add +1 FTD (Admin only)
 // @access  Private + Admin
 router.post('/:id/increment-ftd', auth, adminAuth, async (req, res) => {
   try {
