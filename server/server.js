@@ -14,11 +14,20 @@ const aiRoutes = require('./routes/ai');
 // Initialize Express app
 const app = express();
 
-// Middleware
+// Middleware - CORS מתוקן
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true
+  origin: [
+    process.env.CLIENT_URL || 'http://localhost:5173',
+    'https://www.ravanathelmet.fun',
+    'https://ravanathelmet.fun',
+    'https://sales-scoreboard-git-main-timetologins-projects.vercel.app',
+    /\.vercel\.app$/,  // מאפשר כל דומיין של Vercel
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
