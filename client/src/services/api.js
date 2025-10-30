@@ -43,19 +43,23 @@ export const usersAPI = {
   getProfile: (id) => api.get(`/users/profile/${id}`),
   updateProfile: (data) => api.put("/users/profile", data),
   
+  // ✅ חדש! עבור Admin לעדכן profile של משתמשים אחרים
+  updateUserProfile: (id, data) => api.put(`/users/${id}/profile`, data),
+  
   // FTD's endpoints
   updateFTDs: (id, ftds) => api.put(`/users/${id}/ftds`, { ftds }),
   addFTDs: (id, amount) => api.post(`/users/${id}/add-ftds`, { amount }),
-  incrementFTD: (id) => api.post(`/users/${id}/ftd/increment`), // ⭐ Updated path
-  decrementFTD: (id) => api.post(`/users/${id}/ftd/decrement`), // ⭐ NEW!
+  incrementFTD: (id) => api.post(`/users/${id}/ftd/increment`),
+  decrementFTD: (id) => api.post(`/users/${id}/ftd/decrement`),
   
   // Plus Ones endpoints
   updatePlusOnes: (id, plusOnes) => api.put(`/users/${id}/plusones`, { plusOnes }),
-  incrementPlusOne: (id) => api.post(`/users/${id}/plusone/increment`), // ⭐ Updated path
-  decrementPlusOne: (id) => api.post(`/users/${id}/plusone/decrement`), // ⭐ NEW!
+  incrementPlusOne: (id) => api.post(`/users/${id}/plusone/increment`),
+  decrementPlusOne: (id) => api.post(`/users/${id}/plusone/decrement`),
   
   // Admin user management endpoints
   editUser: (id, userData) => api.put(`/users/${id}/edit`, userData),
+  changePassword: (id, newPassword) => api.put(`/users/${id}/reset-password`, { newPassword }),
   resetPassword: (id, newPassword) => api.put(`/users/${id}/reset-password`, { newPassword }),
   toggleAdmin: (id) => api.put(`/users/${id}/toggle-admin`),
   

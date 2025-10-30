@@ -226,21 +226,20 @@ const AdminPanel = () => {
     };
 
     const handleUpdateAvatar = async (userId, newAvatar) => {
-        try {
-            const user = users.find((u) => u.id === userId);
-            await usersAPI.editUser(userId, {
-                name: user.name,
-                email: user.email,
-                profilePicture: newAvatar,
-            });
-            await fetchUsers();
-            setShowAvatarModal(null);
-            showMessage('success', '✅ Avatar updated successfully!');
-        } catch (err) {
-            showMessage('error', '❌ Failed to update avatar');
-        }
-    };
-
+    try {
+        const user = users.find((u) => u.id === userId);
+        // ✅ שינוי: משתמש updateUserProfile במקום editUser
+        await usersAPI.updateUserProfile(userId, {
+            name: user.name,
+            profilePicture: newAvatar,
+        });
+        await fetchUsers();
+        setShowAvatarModal(null);
+        showMessage('success', '✅ Avatar updated successfully!');
+    } catch (err) {
+        showMessage('error', '❌ Failed to update avatar');
+    }
+};
     const handleDeleteUser = async (userId) => {
         if (
             !window.confirm(
