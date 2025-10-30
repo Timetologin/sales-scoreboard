@@ -55,11 +55,11 @@ const Dashboard = () => {
   const getPodiumHeight = (rank) => {
     switch (rank) {
       case 1:
-        return 'h-72';
+        return 'h-80'; // ⭐ Increased height for winner
       case 2:
-        return 'h-56';
+        return 'h-64';
       case 3:
-        return 'h-48';
+        return 'h-56';
       default:
         return 'h-40';
     }
@@ -144,7 +144,7 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        {/* ⭐ חדש: TOP 3 PODIUM */}
+        {/* ⭐ חדש: TOP 3 PODIUM - FIXED SPACING! */}
         {topThree.length > 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -158,7 +158,7 @@ const Dashboard = () => {
               <Trophy className="w-10 h-10 text-yellow-400" />
             </h2>
 
-            <div className="flex justify-center items-end gap-4 mb-8 flex-wrap md:flex-nowrap">
+            <div className="flex justify-center items-end gap-6 mb-8 flex-wrap md:flex-nowrap px-4">
               {topThree.map((user) => (
                 <motion.div
                   key={user.id}
@@ -167,7 +167,7 @@ const Dashboard = () => {
                   transition={{ delay: user.rank * 0.2 }}
                   className={`${getPodiumOrder(user.rank)} ${getPodiumHeight(user.rank)} 
                     ${user.rank === 1 ? 'w-80' : 'w-72'} 
-                    card-alpha relative overflow-hidden group prowl-effect`}
+                    card-alpha relative overflow-hidden group prowl-effect flex flex-col justify-between`}
                   style={{
                     background: user.rank === 1 
                       ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.1))'
@@ -194,76 +194,82 @@ const Dashboard = () => {
                     </div>
                   </div>
 
-                  {/* Medal/Crown */}
-                  <div className="text-center mt-6 mb-4">
+                  {/* Top Section */}
+                  <div className="pt-4">
+                    {/* Medal/Crown */}
+                    <div className="text-center mb-3">
+                      {user.rank === 1 && (
+                        <motion.div
+                          animate={{ rotate: [0, -10, 10, -10, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <Crown className="w-20 h-20 text-yellow-400 mx-auto drop-shadow-lg" />
+                        </motion.div>
+                      )}
+                      {user.rank === 2 && <Medal className="w-16 h-16 text-gray-400 mx-auto drop-shadow-lg" />}
+                      {user.rank === 3 && <Medal className="w-16 h-16 text-orange-600 mx-auto drop-shadow-lg" />}
+                    </div>
+
+                    {/* Profile Picture */}
+                    <div className="flex justify-center mb-3">
+                      <img
+                        src={user.profilePicture}
+                        alt={user.name}
+                        className={`rounded-full object-cover shadow-2xl
+                          ${user.rank === 1 ? 'w-32 h-32 border-8 border-yellow-400' : 'w-24 h-24 border-6 border-tiger-orange'}
+                        `}
+                      />
+                    </div>
+
+                    {/* ⭐ FIXED: User Name with better spacing */}
+                    <h3 className={`text-center font-extrabold px-4 leading-tight
+                      ${user.rank === 1 ? 'text-2xl text-yellow-300 mb-2' : 'text-xl text-tiger-yellow mb-2'}
+                    `}>
+                      {user.name}
+                    </h3>
+
+                    {/* ⭐ FIXED: Email with better spacing */}
+                    <p className="text-center text-xs text-orange-200 px-4 mb-3 leading-relaxed">
+                      {user.email}
+                    </p>
+                  </div>
+
+                  {/* Bottom Section */}
+                  <div className="pb-4">
+                    {/* FTD Count - BIG */}
+                    <div className="text-center mb-2">
+                      <p className={`font-extrabold leading-none
+                        ${user.rank === 1 ? 'text-5xl text-yellow-400' : 'text-4xl alpha-text'}
+                      `}>
+                        {user.ftds}
+                      </p>
+                      <p className="text-sm text-tiger-orange font-bold mt-1">FTD's</p>
+                    </div>
+
+                    {/* Plus Ones */}
+                    <div className="flex justify-center items-center gap-2 mb-3">
+                      <Award className="w-5 h-5 text-cyan-400" />
+                      <span className="text-cyan-300 font-bold text-sm">
+                        {user.plusOnes || 0} +1's
+                      </span>
+                    </div>
+
+                    {/* Celebration Text for Winner */}
                     {user.rank === 1 && (
                       <motion.div
-                        animate={{ rotate: [0, -10, 10, -10, 0] }}
+                        animate={{ scale: [1, 1.05, 1] }}
                         transition={{ duration: 2, repeat: Infinity }}
+                        className="text-center px-2"
                       >
-                        <Crown className="w-20 h-20 text-yellow-400 mx-auto drop-shadow-lg" />
+                        <p className="text-yellow-300 font-extrabold text-base mb-1">
+                          👑 THE CHAMPION! 👑
+                        </p>
+                        <p className="text-yellow-400 font-bold text-xs">
+                          🎉 Everyone bow down! 🎉
+                        </p>
                       </motion.div>
                     )}
-                    {user.rank === 2 && <Medal className="w-16 h-16 text-gray-400 mx-auto drop-shadow-lg" />}
-                    {user.rank === 3 && <Medal className="w-16 h-16 text-orange-600 mx-auto drop-shadow-lg" />}
                   </div>
-
-                  {/* Profile Picture */}
-                  <div className="flex justify-center mb-4">
-                    <img
-                      src={user.profilePicture}
-                      alt={user.name}
-                      className={`rounded-full object-cover shadow-2xl
-                        ${user.rank === 1 ? 'w-32 h-32 border-8 border-yellow-400' : 'w-24 h-24 border-6 border-tiger-orange'}
-                      `}
-                    />
-                  </div>
-
-                  {/* User Name */}
-                  <h3 className={`text-center font-extrabold mb-2 truncate px-4
-                    ${user.rank === 1 ? 'text-3xl text-yellow-300' : 'text-2xl text-tiger-yellow'}
-                  `}>
-                    {user.name}
-                  </h3>
-
-                  {/* Email */}
-                  <p className="text-center text-sm text-orange-200 mb-4 truncate px-4">
-                    {user.email}
-                  </p>
-
-                  {/* FTD Count - BIG */}
-                  <div className="text-center mb-3">
-                    <p className={`font-extrabold
-                      ${user.rank === 1 ? 'text-6xl text-yellow-400' : 'text-5xl alpha-text'}
-                    `}>
-                      {user.ftds}
-                    </p>
-                    <p className="text-sm text-tiger-orange font-bold">FTD's</p>
-                  </div>
-
-                  {/* Plus Ones */}
-                  <div className="flex justify-center items-center gap-2 mb-4">
-                    <Award className="w-5 h-5 text-cyan-400" />
-                    <span className="text-cyan-300 font-bold">
-                      {user.plusOnes || 0} +1's
-                    </span>
-                  </div>
-
-                  {/* Celebration Text for Winner */}
-                  {user.rank === 1 && (
-                    <motion.div
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="text-center"
-                    >
-                      <p className="text-yellow-300 font-extrabold text-lg">
-                        👑 THE CHAMPION! 👑
-                      </p>
-                      <p className="text-yellow-400 font-bold text-sm mt-1">
-                        🎉 Everyone bow down! 🎉
-                      </p>
-                    </motion.div>
-                  )}
                 </motion.div>
               ))}
             </div>
