@@ -20,6 +20,7 @@ import {
     Shield,
     Mail,
     User as UserIcon,
+    Upload,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -44,12 +45,7 @@ const AVATAR_GALLERY = [
 ];
 
 // Image compression function
-const compressImage = (
-    file,
-    maxWidth = 200,
-    maxHeight = 200,
-    quality = 0.7
-) => {
+const compressImage = (file, maxWidth = 200, maxHeight = 200, quality = 0.7) => {
     return new Promise((resolve, reject) => {
         if (!file || !file.type.startsWith('image/')) {
             reject(new Error('Invalid file'));
@@ -60,7 +56,7 @@ const compressImage = (
         reader.onerror = () => reject(new Error('Failed to read file'));
 
         reader.onload = (event) => {
-            const img = new Image();
+            const img = new window.Image();
             img.onerror = () => reject(new Error('Failed to load image'));
 
             img.onload = () => {
@@ -92,17 +88,10 @@ const compressImage = (
                             return;
                         }
 
-                        const compressedFile = new File([blob], file.name, {
-                            type: 'image/jpeg',
-                            lastModified: Date.now(),
-                        });
-
                         const compressedReader = new FileReader();
-                        compressedReader.onerror = () =>
-                            reject(new Error('Failed to read compressed image'));
-                        compressedReader.onloadend = () =>
-                            resolve(compressedReader.result);
-                        compressedReader.readAsDataURL(compressedFile);
+                        compressedReader.onerror = () => reject(new Error('Failed to read compressed image'));
+                        compressedReader.onloadend = () => resolve(compressedReader.result);
+                        compressedReader.readAsDataURL(blob);
                     },
                     'image/jpeg',
                     quality
@@ -134,7 +123,6 @@ const AdminPanel = () => {
     const fetchUsers = async () => {
         try {
             const response = await usersAPI.getAllUsers();
-            // ⭐ מיון מהגבוה לנמוך (Higher is Better!)
             const sortedUsers = response.data.sort((a, b) => b.ftds - a.ftds);
             setUsers(sortedUsers);
         } catch (err) {
@@ -171,7 +159,6 @@ const AdminPanel = () => {
         }
     };
 
-    // ⭐ כפתור הוסף FTD
     const handleIncrementFTD = async (userId) => {
         try {
             await usersAPI.incrementFTD(userId);
@@ -182,7 +169,6 @@ const AdminPanel = () => {
         }
     };
 
-    // ⭐ חדש: כפתור הורד FTD
     const handleDecrementFTD = async (userId) => {
         const user = users.find(u => u.id === userId);
         if (user && user.ftds <= 0) {
@@ -198,7 +184,6 @@ const AdminPanel = () => {
         }
     };
 
-    // ⭐ כפתור הוסף Plus One
     const handleIncrementPlusOne = async (userId) => {
         try {
             await usersAPI.incrementPlusOne(userId);
@@ -209,7 +194,6 @@ const AdminPanel = () => {
         }
     };
 
-    // ⭐ חדש: כפתור הורד Plus One
     const handleDecrementPlusOne = async (userId) => {
         const user = users.find(u => u.id === userId);
         if (user && user.plusOnes <= 0) {
@@ -226,27 +210,23 @@ const AdminPanel = () => {
     };
 
     const handleUpdateAvatar = async (userId, newAvatar) => {
-    try {
-        const user = users.find((u) => u.id === userId);
-        // ✅ שינוי: משתמש updateUserProfile במקום editUser
-        await usersAPI.updateUserProfile(userId, {
-            name: user.name,
-            profilePicture: newAvatar,
-        });
-        await fetchUsers();
-        setShowAvatarModal(null);
-        showMessage('success', '✅ Avatar updated successfully!');
-    } catch (err) {
-        showMessage('error', '❌ Failed to update avatar');
-    }
-};
+        try {
+            const user = users.find((u) => u.id === userId);
+            await usersAPI.updateUserProfile(userId, {
+                name: user.name,
+                profilePicture: newAvatar,
+            });
+            await fetchUsers();
+            setShowAvatarModal(null);
+            showMessage('success', '✅ Avatar updated successfully!');
+        } catch (err) {
+            console.error('Update avatar error:', err);
+            showMessage('error', '❌ Failed to update avatar');
+        }
+    };
+
     const handleDeleteUser = async (userId) => {
-        if (
-            !window.confirm(
-                '❓ Are you sure you want to delete this user?'
-            )
-        )
-            return;
+        if (!window.confirm('❓ Are you sure you want to delete this user?')) return;
         try {
             await usersAPI.deleteUser(userId);
             await fetchUsers();
@@ -256,23 +236,15 @@ const AdminPanel = () => {
         }
     };
 
-    const totalFTDs = users.reduce(
-        (sum, user) => sum + (user.ftds || 0),
-        0
-    );
-    const totalPlusOnes = users.reduce(
-        (sum, user) => sum + (user.plusOnes || 0),
-        0
-    );
+    const totalFTDs = users.reduce((sum, user) => sum + (user.ftds || 0), 0);
+    const totalPlusOnes = users.reduce((sum, user) => sum + (user.plusOnes || 0), 0);
 
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-tiger-orange mx-auto mb-4"></div>
-                    <p className="text-tiger-orange font-semibold">
-                        Loading admin panel...
-                    </p>
+                    <p className="text-tiger-orange font-semibold">Loading admin panel...</p>
                 </div>
             </div>
         );
@@ -300,36 +272,22 @@ const AdminPanel = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                     <div className="card-alpha text-center prowl-effect">
                         <Users className="w-10 h-10 text-tiger-orange mx-auto mb-2" />
-                        <p className="text-sm text-tiger-yellow font-bold">
-                            Total Users
-                        </p>
-                        <p className="text-4xl font-extrabold alpha-text">
-                            {users.length}
-                        </p>
+                        <p className="text-sm text-tiger-yellow font-bold">Total Users</p>
+                        <p className="text-4xl font-extrabold alpha-text">{users.length}</p>
                     </div>
                     <div className="card-alpha text-center prowl-effect">
                         <Target className="w-10 h-10 text-green-500 mx-auto mb-2" />
-                        <p className="text-sm text-tiger-yellow font-bold">
-                            Total FTD's
-                        </p>
-                        <p className="text-4xl font-extrabold alpha-text">
-                            {totalFTDs}
-                        </p>
+                        <p className="text-sm text-tiger-yellow font-bold">Total FTD's</p>
+                        <p className="text-4xl font-extrabold alpha-text">{totalFTDs}</p>
                     </div>
                     <div className="card-alpha text-center prowl-effect">
                         <Award className="w-10 h-10 text-cyan-400 mx-auto mb-2" />
-                        <p className="text-sm text-tiger-yellow font-bold">
-                            Total Plus Ones
-                        </p>
-                        <p className="text-4xl font-extrabold alpha-text">
-                            {totalPlusOnes}
-                        </p>
+                        <p className="text-sm text-tiger-yellow font-bold">Total Plus Ones</p>
+                        <p className="text-4xl font-extrabold alpha-text">{totalPlusOnes}</p>
                     </div>
                     <div className="card-alpha text-center prowl-effect">
                         <Crown className="w-10 h-10 text-yellow-400 mx-auto mb-2" />
-                        <p className="text-sm text-tiger-yellow font-bold">
-                            Top Player
-                        </p>
+                        <p className="text-sm text-tiger-yellow font-bold">Top Player</p>
                         <p className="text-2xl font-extrabold alpha-text truncate">
                             {users[0]?.name || 'N/A'}
                         </p>
@@ -345,10 +303,7 @@ const AdminPanel = () => {
                         <PlusCircle className="w-5 h-5" />
                         Create New User
                     </button>
-                    <button
-                        onClick={fetchUsers}
-                        className="btn-secondary flex items-center gap-2"
-                    >
+                    <button onClick={fetchUsers} className="btn-secondary flex items-center gap-2">
                         <RefreshCw className="w-5 h-5" />
                         Refresh
                     </button>
@@ -369,9 +324,7 @@ const AdminPanel = () => {
                         >
                             <p
                                 className={`font-bold text-center flex items-center justify-center gap-2 ${
-                                    message.type === 'success'
-                                        ? 'text-green-300'
-                                        : 'text-red-300'
+                                    message.type === 'success' ? 'text-green-300' : 'text-red-300'
                                 }`}
                             >
                                 {message.type === 'success' ? (
@@ -391,27 +344,13 @@ const AdminPanel = () => {
                         <table className="w-full">
                             <thead className="bg-tiger-orange/20 border-b-2 border-tiger-orange">
                                 <tr>
-                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">
-                                        🏆 Rank
-                                    </th>
-                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">
-                                        👤 User
-                                    </th>
-                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">
-                                        📧 Email
-                                    </th>
-                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">
-                                        🎯 FTD's
-                                    </th>
-                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">
-                                        🏅 Plus Ones
-                                    </th>
-                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">
-                                        👑 Role
-                                    </th>
-                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">
-                                        🛠️ Actions
-                                    </th>
+                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">🏆 Rank</th>
+                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">👤 User</th>
+                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">📧 Email</th>
+                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">🎯 FTD's</th>
+                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">🏅 Plus Ones</th>
+                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">👑 Role</th>
+                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">🛠️ Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -420,9 +359,7 @@ const AdminPanel = () => {
                                         key={user.id}
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
-                                        transition={{
-                                            delay: index * 0.05,
-                                        }}
+                                        transition={{ delay: index * 0.05 }}
                                         className="border-b border-tiger-orange/20 hover:bg-tiger-orange/10 transition-colors"
                                     >
                                         {/* Rank */}
@@ -449,25 +386,25 @@ const AdminPanel = () => {
                                             <div className="flex items-center gap-3 justify-center">
                                                 <div className="relative group">
                                                     <img
-                                                        src={
-                                                            user.profilePicture
-                                                        }
+                                                        src={user.profilePicture}
                                                         alt={user.name}
                                                         className="w-12 h-12 rounded-full object-cover border-2 border-tiger-orange cursor-pointer hover:border-tiger-yellow transition-all"
-                                                        onClick={() =>
-                                                            setShowAvatarModal(
-                                                                user.id
-                                                            )
-                                                        }
+                                                        onClick={() => {
+                                                            console.log('Clicked avatar for user:', user.id);
+                                                            setShowAvatarModal(user.id);
+                                                        }}
                                                     />
-                                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded-full transition-all flex items-center justify-center cursor-pointer">
+                                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded-full transition-all flex items-center justify-center cursor-pointer"
+                                                        onClick={() => {
+                                                            console.log('Clicked overlay for user:', user.id);
+                                                            setShowAvatarModal(user.id);
+                                                        }}
+                                                    >
                                                         <Image className="w-5 h-5 text-white opacity-0 group-hover:opacity-100" />
                                                     </div>
                                                 </div>
                                                 <div className="text-center">
-                                                    <p className="text-tiger-yellow font-bold">
-                                                        {user.name}
-                                                    </p>
+                                                    <p className="text-tiger-yellow font-bold">{user.name}</p>
                                                     {index < 3 && (
                                                         <p className="text-xs text-tiger-orange">
                                                             {index === 0
@@ -482,9 +419,7 @@ const AdminPanel = () => {
                                         </td>
 
                                         {/* Email */}
-                                        <td className="px-4 py-4 text-center text-orange-200">
-                                            {user.email}
-                                        </td>
+                                        <td className="px-4 py-4 text-center text-orange-200">{user.email}</td>
 
                                         {/* FTD's with +/- buttons */}
                                         <td className="px-4 py-4">
@@ -492,48 +427,26 @@ const AdminPanel = () => {
                                                 <div className="flex items-center justify-center gap-2">
                                                     <input
                                                         type="number"
-                                                        defaultValue={
-                                                            user.ftds
-                                                        }
+                                                        defaultValue={user.ftds}
                                                         className="w-20 px-2 py-1 bg-dark-bg border-2 border-tiger-orange rounded text-center text-tiger-yellow font-bold"
-                                                        onKeyPress={(
-                                                            e
-                                                        ) => {
-                                                            if (
-                                                                e.key ===
-                                                                'Enter'
-                                                            ) {
-                                                                handleUpdateFTDs(
-                                                                    user.id,
-                                                                    e
-                                                                        .target
-                                                                        .value
-                                                                );
+                                                        onKeyPress={(e) => {
+                                                            if (e.key === 'Enter') {
+                                                                handleUpdateFTDs(user.id, e.target.value);
                                                             }
                                                         }}
                                                         autoFocus
                                                     />
                                                     <button
                                                         onClick={() => {
-                                                            const input =
-                                                                document.querySelector(
-                                                                    `input[type="number"]`
-                                                                );
-                                                            handleUpdateFTDs(
-                                                                user.id,
-                                                                input.value
-                                                            );
+                                                            const input = document.querySelector('input[type="number"]');
+                                                            handleUpdateFTDs(user.id, input.value);
                                                         }}
                                                         className="p-1 bg-green-600 hover:bg-green-700 rounded"
                                                     >
                                                         <Save className="w-4 h-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() =>
-                                                            setEditingFTDs(
-                                                                null
-                                                            )
-                                                        }
+                                                        onClick={() => setEditingFTDs(null)}
                                                         className="p-1 bg-red-600 hover:bg-red-700 rounded"
                                                     >
                                                         <X className="w-4 h-4" />
@@ -541,16 +454,9 @@ const AdminPanel = () => {
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center justify-center gap-2">
-                                                    {/* ⭐ כפתור מינוס - הורד FTD */}
                                                     <button
-                                                        onClick={() =>
-                                                            handleDecrementFTD(
-                                                                user.id
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            user.ftds <= 0
-                                                        }
+                                                        onClick={() => handleDecrementFTD(user.id)}
+                                                        disabled={user.ftds <= 0}
                                                         className={`p-2 rounded-lg transition-all ${
                                                             user.ftds <= 0
                                                                 ? 'bg-gray-600 cursor-not-allowed opacity-50'
@@ -562,23 +468,14 @@ const AdminPanel = () => {
                                                     </button>
 
                                                     <span
-                                                        onClick={() =>
-                                                            setEditingFTDs(
-                                                                user.id
-                                                            )
-                                                        }
+                                                        onClick={() => setEditingFTDs(user.id)}
                                                         className="text-2xl font-bold alpha-text min-w-[3rem] text-center cursor-pointer hover:text-tiger-yellow transition-colors"
                                                     >
                                                         {user.ftds}
                                                     </span>
 
-                                                    {/* ⭐ כפתור פלוס - הוסף FTD */}
                                                     <button
-                                                        onClick={() =>
-                                                            handleIncrementFTD(
-                                                                user.id
-                                                            )
-                                                        }
+                                                        onClick={() => handleIncrementFTD(user.id)}
                                                         className="p-2 bg-green-600 hover:bg-green-700 rounded-lg transition-all prowl-effect"
                                                         title="Add FTD"
                                                     >
@@ -590,54 +487,30 @@ const AdminPanel = () => {
 
                                         {/* Plus Ones with +/- buttons */}
                                         <td className="px-4 py-4">
-                                            {editingPlusOnes ===
-                                            user.id ? (
+                                            {editingPlusOnes === user.id ? (
                                                 <div className="flex items-center justify-center gap-2">
                                                     <input
                                                         type="number"
-                                                        defaultValue={
-                                                            user.plusOnes ||
-                                                            0
-                                                        }
+                                                        defaultValue={user.plusOnes || 0}
                                                         className="w-20 px-2 py-1 bg-dark-bg border-2 border-cyan-400 rounded text-center text-cyan-300 font-bold"
-                                                        onKeyPress={(
-                                                            e
-                                                        ) => {
-                                                            if (
-                                                                e.key ===
-                                                                'Enter'
-                                                            ) {
-                                                                handleUpdatePlusOnes(
-                                                                    user.id,
-                                                                    e
-                                                                        .target
-                                                                        .value
-                                                                );
+                                                        onKeyPress={(e) => {
+                                                            if (e.key === 'Enter') {
+                                                                handleUpdatePlusOnes(user.id, e.target.value);
                                                             }
                                                         }}
                                                         autoFocus
                                                     />
                                                     <button
                                                         onClick={() => {
-                                                            const input =
-                                                                document.querySelector(
-                                                                    `input[type="number"]`
-                                                                );
-                                                            handleUpdatePlusOnes(
-                                                                user.id,
-                                                                input.value
-                                                            );
+                                                            const input = document.querySelector('input[type="number"]');
+                                                            handleUpdatePlusOnes(user.id, input.value);
                                                         }}
                                                         className="p-1 bg-green-600 hover:bg-green-700 rounded"
                                                     >
                                                         <Save className="w-4 h-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() =>
-                                                            setEditingPlusOnes(
-                                                                null
-                                                            )
-                                                        }
+                                                        onClick={() => setEditingPlusOnes(null)}
                                                         className="p-1 bg-red-600 hover:bg-red-700 rounded"
                                                     >
                                                         <X className="w-4 h-4" />
@@ -645,20 +518,11 @@ const AdminPanel = () => {
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center justify-center gap-2">
-                                                    {/* ⭐ כפתור מינוס - הורד Plus One */}
                                                     <button
-                                                        onClick={() =>
-                                                            handleDecrementPlusOne(
-                                                                user.id
-                                                            )
-                                                        }
-                                                        disabled={
-                                                            (user.plusOnes ||
-                                                                0) <= 0
-                                                        }
+                                                        onClick={() => handleDecrementPlusOne(user.id)}
+                                                        disabled={(user.plusOnes || 0) <= 0}
                                                         className={`p-2 rounded-lg transition-all ${
-                                                            (user.plusOnes ||
-                                                                0) <= 0
+                                                            (user.plusOnes || 0) <= 0
                                                                 ? 'bg-gray-600 cursor-not-allowed opacity-50'
                                                                 : 'bg-orange-600 hover:bg-orange-700 prowl-effect'
                                                         }`}
@@ -668,24 +532,14 @@ const AdminPanel = () => {
                                                     </button>
 
                                                     <span
-                                                        onClick={() =>
-                                                            setEditingPlusOnes(
-                                                                user.id
-                                                            )
-                                                        }
+                                                        onClick={() => setEditingPlusOnes(user.id)}
                                                         className="text-2xl font-bold text-cyan-300 min-w-[3rem] text-center cursor-pointer hover:text-cyan-400 transition-colors"
                                                     >
-                                                        {user.plusOnes ||
-                                                            0}
+                                                        {user.plusOnes || 0}
                                                     </span>
 
-                                                    {/* ⭐ כפתור פלוס - הוסף Plus One */}
                                                     <button
-                                                        onClick={() =>
-                                                            handleIncrementPlusOne(
-                                                                user.id
-                                                            )
-                                                        }
+                                                        onClick={() => handleIncrementPlusOne(user.id)}
                                                         className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all prowl-effect"
                                                         title="Add Plus One"
                                                     >
@@ -705,9 +559,7 @@ const AdminPanel = () => {
                                                             : 'bg-gray-600 text-white'
                                                     }`}
                                                 >
-                                                    {user.isAdmin
-                                                        ? '👑 Admin'
-                                                        : '👤 User'}
+                                                    {user.isAdmin ? '👑 Admin' : '👤 User'}
                                                 </span>
                                             </div>
                                         </td>
@@ -716,33 +568,21 @@ const AdminPanel = () => {
                                         <td className="px-4 py-4">
                                             <div className="flex justify-center gap-2">
                                                 <button
-                                                    onClick={() =>
-                                                        setShowEditModal(
-                                                            user.id
-                                                        )
-                                                    }
+                                                    onClick={() => setShowEditModal(user.id)}
                                                     className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all prowl-effect"
                                                     title="Edit User"
                                                 >
                                                     <Edit className="w-5 h-5 text-white" />
                                                 </button>
                                                 <button
-                                                    onClick={() =>
-                                                        setShowPasswordModal(
-                                                            user.id
-                                                        )
-                                                    }
+                                                    onClick={() => setShowPasswordModal(user.id)}
                                                     className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-all prowl-effect"
                                                     title="Change Password"
                                                 >
                                                     <Key className="w-5 h-5 text-white" />
                                                 </button>
                                                 <button
-                                                    onClick={() =>
-                                                        handleDeleteUser(
-                                                            user.id
-                                                        )
-                                                    }
+                                                    onClick={() => handleDeleteUser(user.id)}
                                                     className="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all prowl-effect"
                                                     title="Delete User"
                                                 >
@@ -764,9 +604,7 @@ const AdminPanel = () => {
                     transition={{ delay: 0.5 }}
                     className="mt-8 card-alpha"
                 >
-                    <h3 className="text-2xl font-bold alpha-text mb-4 text-center">
-                        📋 Admin Instructions
-                    </h3>
+                    <h3 className="text-2xl font-bold alpha-text mb-4 text-center">📋 Admin Instructions</h3>
                     <div className="grid md:grid-cols-2 gap-6 text-orange-200">
                         <div>
                             <h4 className="text-tiger-yellow font-bold mb-2 flex items-center gap-2">
@@ -774,27 +612,11 @@ const AdminPanel = () => {
                                 FTD Management:
                             </h4>
                             <ul className="list-disc list-inside space-y-1 text-sm">
-                                <li>
-                                    <strong className="text-green-400">
-                                        Plus (+)
-                                    </strong>{' '}
-                                    button adds 1 FTD
-                                </li>
-                                <li>
-                                    <strong className="text-red-400">
-                                        Minus (-)
-                                    </strong>{' '}
-                                    button removes 1 FTD
-                                </li>
-                                <li>
-                                    FTD count cannot go below 0
-                                </li>
-                                <li>
-                                    Click number to edit manually
-                                </li>
-                                <li>
-                                    Leaderboard updates automatically
-                                </li>
+                                <li><strong className="text-green-400">Plus (+)</strong> button adds 1 FTD</li>
+                                <li><strong className="text-red-400">Minus (-)</strong> button removes 1 FTD</li>
+                                <li>FTD count cannot go below 0</li>
+                                <li>Click number to edit manually</li>
+                                <li>Leaderboard updates automatically</li>
                             </ul>
                         </div>
                         <div>
@@ -803,27 +625,11 @@ const AdminPanel = () => {
                                 Plus One Management:
                             </h4>
                             <ul className="list-disc list-inside space-y-1 text-sm">
-                                <li>
-                                    <strong className="text-blue-400">
-                                        Plus (+)
-                                    </strong>{' '}
-                                    button adds 1 Plus One
-                                </li>
-                                <li>
-                                    <strong className="text-orange-400">
-                                        Minus (-)
-                                    </strong>{' '}
-                                    button removes 1 Plus One
-                                </li>
-                                <li>
-                                    Plus One count cannot go below 0
-                                </li>
-                                <li>
-                                    Click number to edit manually
-                                </li>
-                                <li>
-                                    Track additional achievements
-                                </li>
+                                <li><strong className="text-blue-400">Plus (+)</strong> button adds 1 Plus One</li>
+                                <li><strong className="text-orange-400">Minus (-)</strong> button removes 1 Plus One</li>
+                                <li>Plus One count cannot go below 0</li>
+                                <li>Click number to edit manually</li>
+                                <li>Track additional achievements</li>
                             </ul>
                         </div>
                         <div>
@@ -832,15 +638,9 @@ const AdminPanel = () => {
                                 Avatar Management:
                             </h4>
                             <ul className="list-disc list-inside space-y-1 text-sm">
-                                <li>
-                                    Click avatar to change it
-                                </li>
-                                <li>
-                                    Upload custom image (auto-compressed)
-                                </li>
-                                <li>
-                                    Choose from avatar gallery
-                                </li>
+                                <li>Click avatar to change it</li>
+                                <li>Upload custom image (auto-compressed)</li>
+                                <li>Choose from avatar gallery</li>
                                 <li>Use image URL</li>
                             </ul>
                         </div>
@@ -850,22 +650,10 @@ const AdminPanel = () => {
                                 User Management:
                             </h4>
                             <ul className="list-disc list-inside space-y-1 text-sm">
-                                <li>
-                                    Edit: Change name, email,
-                                    admin status
-                                </li>
-                                <li>
-                                    Password: Change user password
-                                </li>
-                                <li>
-                                    Delete: Remove user (requires
-                                    confirmation)
-                                </li>
-                                <li>
-                                    <strong className="text-red-400">
-                                        Deletion cannot be undone!
-                                    </strong>
-                                </li>
+                                <li>Edit: Change name, email, admin status</li>
+                                <li>Password: Change user password</li>
+                                <li>Delete: Remove user (requires confirmation)</li>
+                                <li><strong className="text-red-400">Deletion cannot be undone!</strong></li>
                             </ul>
                         </div>
                     </div>
@@ -874,12 +662,8 @@ const AdminPanel = () => {
                 {users.length === 0 && (
                     <div className="text-center py-12">
                         <Users className="w-24 h-24 text-tiger-orange/30 mx-auto mb-4" />
-                        <h3 className="text-2xl font-bold text-tiger-orange mb-2">
-                            No users found
-                        </h3>
-                        <p className="text-orange-200">
-                            Create your first user to get started!
-                        </p>
+                        <h3 className="text-2xl font-bold text-tiger-orange mb-2">No users found</h3>
+                        <p className="text-orange-200">Create your first user to get started!</p>
                     </div>
                 )}
             </div>
@@ -891,10 +675,7 @@ const AdminPanel = () => {
                     onSuccess={() => {
                         setShowCreateModal(false);
                         fetchUsers();
-                        showMessage(
-                            'success',
-                            '✅ User created successfully!'
-                        );
+                        showMessage('success', '✅ User created successfully!');
                     }}
                     onError={(msg) => showMessage('error', msg)}
                 />
@@ -903,17 +684,12 @@ const AdminPanel = () => {
             {showEditModal && (
                 <EditUserModal
                     userId={showEditModal}
-                    user={users.find(
-                        (u) => u.id === showEditModal
-                    )}
+                    user={users.find((u) => u.id === showEditModal)}
                     onClose={() => setShowEditModal(null)}
                     onSuccess={() => {
                         setShowEditModal(null);
                         fetchUsers();
-                        showMessage(
-                            'success',
-                            '✅ User updated successfully!'
-                        );
+                        showMessage('success', '✅ User updated successfully!');
                     }}
                     onError={(msg) => showMessage('error', msg)}
                 />
@@ -922,18 +698,11 @@ const AdminPanel = () => {
             {showPasswordModal && (
                 <PasswordModal
                     userId={showPasswordModal}
-                    userName={
-                        users.find(
-                            (u) => u.id === showPasswordModal
-                        )?.name
-                    }
+                    userName={users.find((u) => u.id === showPasswordModal)?.name}
                     onClose={() => setShowPasswordModal(null)}
                     onSuccess={() => {
                         setShowPasswordModal(null);
-                        showMessage(
-                            'success',
-                            '✅ Password changed successfully!'
-                        );
+                        showMessage('success', '✅ Password changed successfully!');
                     }}
                     onError={(msg) => showMessage('error', msg)}
                 />
@@ -942,18 +711,16 @@ const AdminPanel = () => {
             {showAvatarModal && (
                 <AvatarModal
                     userId={showAvatarModal}
-                    currentAvatar={
-                        users.find(
-                            (u) => u.id === showAvatarModal
-                        )?.profilePicture
-                    }
-                    onClose={() => setShowAvatarModal(null)}
-                    onSelect={(newAvatar) =>
-                        handleUpdateAvatar(
-                            showAvatarModal,
-                            newAvatar
-                        )
-                    }
+                    currentAvatar={users.find((u) => u.id === showAvatarModal)?.profilePicture}
+                    userName={users.find((u) => u.id === showAvatarModal)?.name}
+                    onClose={() => {
+                        console.log('Closing avatar modal');
+                        setShowAvatarModal(null);
+                    }}
+                    onSelect={(newAvatar) => {
+                        console.log('Selected new avatar:', newAvatar);
+                        handleUpdateAvatar(showAvatarModal, newAvatar);
+                    }}
                 />
             )}
         </div>
@@ -961,13 +728,7 @@ const AdminPanel = () => {
 };
 
 // Edit User Modal
-const EditUserModal = ({
-    userId,
-    user,
-    onClose,
-    onSuccess,
-    onError,
-}) => {
+const EditUserModal = ({ userId, user, onClose, onSuccess, onError }) => {
     const [formData, setFormData] = useState({
         name: user?.name || '',
         email: user?.email || '',
@@ -982,10 +743,7 @@ const EditUserModal = ({
             await usersAPI.editUser(userId, formData);
             onSuccess();
         } catch (err) {
-            onError(
-                err.response?.data?.message ||
-                    'Failed to update user'
-            );
+            onError(err.response?.data?.message || 'Failed to update user');
         } finally {
             setLoading(false);
         }
@@ -998,45 +756,26 @@ const EditUserModal = ({
                 animate={{ opacity: 1, scale: 1 }}
                 className="card-alpha max-w-md w-full p-6"
             >
-                <h2 className="text-2xl font-bold alpha-text mb-6">
-                    ✏️ Edit User
-                </h2>
+                <h2 className="text-2xl font-bold alpha-text mb-6">✏️ Edit User</h2>
 
-                <form
-                    onSubmit={handleSubmit}
-                    className="space-y-4"
-                >
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-bold text-tiger-orange mb-2">
-                            👤 Name
-                        </label>
+                        <label className="block text-sm font-bold text-tiger-orange mb-2">👤 Name</label>
                         <input
                             type="text"
                             value={formData.name}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    name: e.target.value,
-                                })
-                            }
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             className="input-field"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-tiger-orange mb-2">
-                            📧 Email
-                        </label>
+                        <label className="block text-sm font-bold text-tiger-orange mb-2">📧 Email</label>
                         <input
                             type="email"
                             value={formData.email}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    email: e.target.value,
-                                })
-                            }
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             className="input-field"
                             required
                         />
@@ -1046,34 +785,17 @@ const EditUserModal = ({
                         <input
                             type="checkbox"
                             checked={formData.isAdmin}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    isAdmin: e.target.checked,
-                                })
-                            }
+                            onChange={(e) => setFormData({ ...formData, isAdmin: e.target.checked })}
                             className="w-4 h-4 text-tiger-orange border-gray-600 rounded focus:ring-tiger-orange bg-gray-700"
                         />
-                        <label className="ml-2 text-sm text-orange-200 font-medium">
-                            👑 Admin privileges
-                        </label>
+                        <label className="ml-2 text-sm text-orange-200 font-medium">👑 Admin privileges</label>
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 btn-alpha"
-                        >
-                            {loading
-                                ? '⏳ Saving...'
-                                : '💾 Save Changes'}
+                        <button type="submit" disabled={loading} className="flex-1 btn-alpha">
+                            {loading ? '⏳ Saving...' : '💾 Save Changes'}
                         </button>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 btn-secondary"
-                        >
+                        <button type="button" onClick={onClose} className="flex-1 btn-secondary">
                             ❌ Cancel
                         </button>
                     </div>
@@ -1084,13 +806,7 @@ const EditUserModal = ({
 };
 
 // Password Modal
-const PasswordModal = ({
-    userId,
-    userName,
-    onClose,
-    onSuccess,
-    onError,
-}) => {
+const PasswordModal = ({ userId, userName, onClose, onSuccess, onError }) => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -1105,10 +821,7 @@ const PasswordModal = ({
             await usersAPI.changePassword(userId, password);
             onSuccess();
         } catch (err) {
-            onError(
-                err.response?.data?.message ||
-                    'Failed to change password'
-            );
+            onError(err.response?.data?.message || 'Failed to change password');
         } finally {
             setLoading(false);
         }
@@ -1121,27 +834,18 @@ const PasswordModal = ({
                 animate={{ opacity: 1, scale: 1 }}
                 className="card-alpha max-w-md w-full p-6"
             >
-                <h2 className="text-2xl font-bold alpha-text mb-2">
-                    🔑 Change Password
-                </h2>
+                <h2 className="text-2xl font-bold alpha-text mb-2">🔑 Change Password</h2>
                 <p className="text-orange-200 mb-6">
                     For user: <strong>{userName}</strong>
                 </p>
 
-                <form
-                    onSubmit={handleSubmit}
-                    className="space-y-4"
-                >
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-bold text-tiger-orange mb-2">
-                            🔒 New Password
-                        </label>
+                        <label className="block text-sm font-bold text-tiger-orange mb-2">🔒 New Password</label>
                         <input
                             type="password"
                             value={password}
-                            onChange={(e) =>
-                                setPassword(e.target.value)
-                            }
+                            onChange={(e) => setPassword(e.target.value)}
                             className="input-field"
                             required
                             minLength={6}
@@ -1150,20 +854,10 @@ const PasswordModal = ({
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 btn-alpha"
-                        >
-                            {loading
-                                ? '⏳ Changing...'
-                                : '✅ Change Password'}
+                        <button type="submit" disabled={loading} className="flex-1 btn-alpha">
+                            {loading ? '⏳ Changing...' : '✅ Change Password'}
                         </button>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 btn-secondary"
-                        >
+                        <button type="button" onClick={onClose} className="flex-1 btn-secondary">
                             ❌ Cancel
                         </button>
                     </div>
@@ -1174,12 +868,7 @@ const PasswordModal = ({
 };
 
 // Avatar Modal
-const AvatarModal = ({
-    userId,
-    currentAvatar,
-    onClose,
-    onSelect,
-}) => {
+const AvatarModal = ({ userId, currentAvatar, userName, onClose, onSelect }) => {
     const [uploadedImage, setUploadedImage] = useState(null);
     const [customUrl, setCustomUrl] = useState('');
     const [uploading, setUploading] = useState(false);
@@ -1200,19 +889,31 @@ const AvatarModal = ({
     };
 
     return (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+            onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                    console.log('Clicked outside modal');
+                    onClose();
+                }
+            }}
+        >
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="card-alpha max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold alpha-text">
-                        🖼️ Change Avatar
-                    </h2>
+                    <div>
+                        <h2 className="text-2xl font-bold alpha-text">🖼️ Change Avatar</h2>
+                        <p className="text-sm text-orange-200">For: <strong>{userName}</strong></p>
+                    </div>
                     <button
-                        onClick={onClose}
-                        className="text-tiger-orange hover:text-tiger-yellow transition-colors"
+                        onClick={() => {
+                            console.log('Clicked X button');
+                            onClose();
+                        }}
+                        className="text-tiger-orange hover:text-tiger-yellow transition-colors p-2"
                     >
                         <X className="w-6 h-6" />
                     </button>
@@ -1220,9 +921,7 @@ const AvatarModal = ({
 
                 {/* Current Avatar */}
                 <div className="mb-6 text-center">
-                    <p className="text-sm text-tiger-yellow mb-2 font-bold">
-                        Current Avatar:
-                    </p>
+                    <p className="text-sm text-tiger-yellow mb-2 font-bold">Current Avatar:</p>
                     <img
                         src={currentAvatar}
                         alt="Current"
@@ -1232,36 +931,29 @@ const AvatarModal = ({
 
                 {/* Upload Section */}
                 <div className="mb-6 p-4 bg-tiger-orange/20 rounded-lg border-2 border-tiger-orange">
-                    <h3 className="font-bold text-tiger-yellow mb-3">
-                        📤 Upload Custom Image
-                    </h3>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                        className="w-full text-orange-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-tiger-orange file:text-white hover:file:bg-orange-600"
-                    />
-                    {uploading && (
-                        <p className="text-sm text-tiger-yellow mt-2">
-                            🔄 Processing image...
-                        </p>
-                    )}
+                    <h3 className="font-bold text-tiger-yellow mb-3">📤 Upload Custom Image</h3>
+                    <label className="block">
+                        <div className="btn-alpha flex items-center justify-center gap-2 cursor-pointer">
+                            <Upload className="w-5 h-5" />
+                            {uploading ? 'Processing...' : 'Choose Image'}
+                        </div>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileUpload}
+                            className="hidden"
+                            disabled={uploading}
+                        />
+                    </label>
                     {uploadedImage && (
                         <div className="mt-4 text-center">
-                            <p className="text-sm text-tiger-yellow mb-2">
-                                Preview:
-                            </p>
+                            <p className="text-sm text-tiger-yellow mb-2">Preview:</p>
                             <img
                                 src={uploadedImage}
                                 alt="Preview"
                                 className="w-32 h-32 rounded-full mx-auto border-4 border-tiger-orange"
                             />
-                            <button
-                                onClick={() =>
-                                    onSelect(uploadedImage)
-                                }
-                                className="mt-2 btn-alpha text-sm"
-                            >
+                            <button onClick={() => onSelect(uploadedImage)} className="mt-2 btn-alpha text-sm">
                                 ✅ Use This Image
                             </button>
                         </div>
@@ -1270,21 +962,17 @@ const AvatarModal = ({
 
                 {/* URL Input */}
                 <div className="mb-6 p-4 bg-cyan-600/20 rounded-lg border-2 border-cyan-500">
-                    <h3 className="font-bold text-cyan-300 mb-3">
-                        🔗 Or Enter Image URL
-                    </h3>
+                    <h3 className="font-bold text-cyan-300 mb-3">🔗 Or Enter Image URL</h3>
                     <div className="flex gap-2">
                         <input
                             type="url"
                             value={customUrl}
-                            onChange={(e) =>
-                                setCustomUrl(e.target.value)
-                            }
+                            onChange={(e) => setCustomUrl(e.target.value)}
                             placeholder="https://example.com/avatar.jpg"
                             className="input-field flex-1"
                         />
                         <button
-                            onClick={() => onSelect(customUrl)}
+                            onClick={() => customUrl && onSelect(customUrl)}
                             disabled={!customUrl}
                             className="btn-primary disabled:opacity-50"
                         >
@@ -1295,14 +983,15 @@ const AvatarModal = ({
 
                 {/* Avatar Gallery */}
                 <div>
-                    <h3 className="font-bold text-tiger-yellow mb-3">
-                        🎨 Choose from Gallery
-                    </h3>
+                    <h3 className="font-bold text-tiger-yellow mb-3">🎨 Choose from Gallery</h3>
                     <div className="grid grid-cols-4 gap-3">
                         {AVATAR_GALLERY.map((avatar, index) => (
                             <button
                                 key={index}
-                                onClick={() => onSelect(avatar)}
+                                onClick={() => {
+                                    console.log('Selected avatar from gallery:', avatar);
+                                    onSelect(avatar);
+                                }}
                                 className="group relative"
                             >
                                 <img
@@ -1323,11 +1012,7 @@ const AvatarModal = ({
 };
 
 // Create User Modal
-const CreateUserModal = ({
-    onClose,
-    onSuccess,
-    onError,
-}) => {
+const CreateUserModal = ({ onClose, onSuccess, onError }) => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -1343,10 +1028,7 @@ const CreateUserModal = ({
             await usersAPI.createUser(formData);
             onSuccess();
         } catch (err) {
-            onError(
-                err.response?.data?.message ||
-                    'Failed to create user'
-            );
+            onError(err.response?.data?.message || 'Failed to create user');
         } finally {
             setLoading(false);
         }
@@ -1359,63 +1041,37 @@ const CreateUserModal = ({
                 animate={{ opacity: 1, scale: 1 }}
                 className="card-alpha max-w-md w-full p-6"
             >
-                <h2 className="text-2xl font-bold alpha-text mb-6">
-                    ➕ Create New User
-                </h2>
+                <h2 className="text-2xl font-bold alpha-text mb-6">➕ Create New User</h2>
 
-                <form
-                    onSubmit={handleSubmit}
-                    className="space-y-4"
-                >
+                <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-bold text-tiger-orange mb-2">
-                            👤 Name
-                        </label>
+                        <label className="block text-sm font-bold text-tiger-orange mb-2">👤 Name</label>
                         <input
                             type="text"
                             value={formData.name}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    name: e.target.value,
-                                })
-                            }
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             className="input-field"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-tiger-orange mb-2">
-                            📧 Email
-                        </label>
+                        <label className="block text-sm font-bold text-tiger-orange mb-2">📧 Email</label>
                         <input
                             type="email"
                             value={formData.email}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    email: e.target.value,
-                                })
-                            }
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                             className="input-field"
                             required
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-bold text-tiger-orange mb-2">
-                            🔒 Password
-                        </label>
+                        <label className="block text-sm font-bold text-tiger-orange mb-2">🔒 Password</label>
                         <input
                             type="password"
                             value={formData.password}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    password: e.target.value,
-                                })
-                            }
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                             className="input-field"
                             required
                             minLength={6}
@@ -1426,34 +1082,17 @@ const CreateUserModal = ({
                         <input
                             type="checkbox"
                             checked={formData.isAdmin}
-                            onChange={(e) =>
-                                setFormData({
-                                    ...formData,
-                                    isAdmin: e.target.checked,
-                                })
-                            }
+                            onChange={(e) => setFormData({ ...formData, isAdmin: e.target.checked })}
                             className="w-4 h-4 text-tiger-orange border-gray-600 rounded focus:ring-tiger-orange bg-gray-700"
                         />
-                        <label className="ml-2 text-sm text-orange-200 font-medium">
-                            👑 Admin privileges
-                        </label>
+                        <label className="ml-2 text-sm text-orange-200 font-medium">👑 Admin privileges</label>
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 btn-alpha"
-                        >
-                            {loading
-                                ? '⏳ Creating...'
-                                : '✨ Create User'}
+                        <button type="submit" disabled={loading} className="flex-1 btn-alpha">
+                            {loading ? '⏳ Creating...' : '✨ Create User'}
                         </button>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 btn-secondary"
-                        >
+                        <button type="button" onClick={onClose} className="flex-1 btn-secondary">
                             ❌ Cancel
                         </button>
                     </div>
