@@ -6,13 +6,13 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 
 // @route   GET /api/users/leaderboard
-// @desc    Get all users sorted by FTDs (ascending - lower is better)
+// @desc    Get all users sorted by FTDs (descending - HIGHER IS BETTER!) ⭐ CHANGED!
 // @access  Private
 router.get('/leaderboard', auth, async (req, res) => {
   try {
     const users = await User.find()
       .select('-password')
-      .sort({ ftds: 1 }); // 1 = ascending (lower FTDs = better rank)
+      .sort({ ftds: -1 }); // ⭐ -1 = descending (HIGHER FTDs = better rank)
 
     const leaderboard = users.map((user, index) => ({
       ...user.getPublicProfile(),
@@ -37,8 +37,8 @@ router.get('/profile/:id', auth, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Get user's rank (lower FTDs = better rank)
-    const allUsers = await User.find().sort({ ftds: 1 });
+    // ⭐ Get user's rank (HIGHER FTDs = better rank)
+    const allUsers = await User.find().sort({ ftds: -1 });
     const rank = allUsers.findIndex(u => u._id.toString() === user._id.toString()) + 1;
 
     res.json({
@@ -254,8 +254,58 @@ router.post('/:id/add-ftds', auth, adminAuth, async (req, res) => {
   }
 });
 
-// @route   POST /api/users/:id/increment-ftd
+// @route   POST /api/users/:id/ftd/increment
 // @desc    Add +1 FTD (Admin only)
+// @access  Private + Admin
+router.post('/:id/ftd/increment', auth, adminAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.ftds += 1;
+    user.lastUpdated = Date.now();
+    await user.save();
+
+    res.json(user.getPublicProfile());
+  } catch (error) {
+    console.error('Increment FTD error:', error);
+    res.status(500).json({ message: 'Server error incrementing FTD' });
+  }
+});
+
+// ⭐ NEW: Decrement FTD endpoint
+// @route   POST /api/users/:id/ftd/decrement
+// @desc    Remove -1 FTD (Admin only) - Cannot go below 0
+// @access  Private + Admin
+router.post('/:id/ftd/decrement', auth, adminAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // ⭐ Check if FTDs is already 0
+    if (user.ftds <= 0) {
+      return res.status(400).json({ message: 'FTDs cannot be less than 0' });
+    }
+
+    user.ftds -= 1;
+    user.lastUpdated = Date.now();
+    await user.save();
+
+    res.json(user.getPublicProfile());
+  } catch (error) {
+    console.error('Decrement FTD error:', error);
+    res.status(500).json({ message: 'Server error decrementing FTD' });
+  }
+});
+
+// @route   POST /api/users/:id/increment-ftd
+// @desc    Add +1 FTD (Admin only) - Legacy endpoint for backward compatibility
 // @access  Private + Admin
 router.post('/:id/increment-ftd', auth, adminAuth, async (req, res) => {
   try {
@@ -276,8 +326,58 @@ router.post('/:id/increment-ftd', auth, adminAuth, async (req, res) => {
   }
 });
 
-// @route   POST /api/users/:id/increment-plusone
+// @route   POST /api/users/:id/plusone/increment
 // @desc    Add +1 to Plus Ones counter (Admin only)
+// @access  Private + Admin
+router.post('/:id/plusone/increment', auth, adminAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.plusOnes += 1;
+    user.lastUpdated = Date.now();
+    await user.save();
+
+    res.json(user.getPublicProfile());
+  } catch (error) {
+    console.error('Increment Plus One error:', error);
+    res.status(500).json({ message: 'Server error incrementing Plus One' });
+  }
+});
+
+// ⭐ NEW: Decrement Plus One endpoint
+// @route   POST /api/users/:id/plusone/decrement
+// @desc    Remove -1 from Plus Ones counter (Admin only) - Cannot go below 0
+// @access  Private + Admin
+router.post('/:id/plusone/decrement', auth, adminAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // ⭐ Check if Plus Ones is already 0
+    if (user.plusOnes <= 0) {
+      return res.status(400).json({ message: 'Plus Ones cannot be less than 0' });
+    }
+
+    user.plusOnes -= 1;
+    user.lastUpdated = Date.now();
+    await user.save();
+
+    res.json(user.getPublicProfile());
+  } catch (error) {
+    console.error('Decrement Plus One error:', error);
+    res.status(500).json({ message: 'Server error decrementing Plus One' });
+  }
+});
+
+// @route   POST /api/users/:id/increment-plusone
+// @desc    Add +1 to Plus Ones counter (Admin only) - Legacy endpoint for backward compatibility
 // @access  Private + Admin
 router.post('/:id/increment-plusone', auth, adminAuth, async (req, res) => {
   try {
@@ -327,11 +427,11 @@ router.put('/:id/plusones', auth, adminAuth, async (req, res) => {
 });
 
 // @route   GET /api/users/all
-// @desc    Get all users (Admin only)
+// @desc    Get all users (Admin only) - ⭐ Sorted by FTDs descending (HIGHER is BETTER)
 // @access  Private + Admin
 router.get('/all', auth, adminAuth, async (req, res) => {
   try {
-    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    const users = await User.find().select('-password').sort({ ftds: -1 }); // ⭐ CHANGED: -1 = descending
     res.json(users.map(user => user.getPublicProfile()));
   } catch (error) {
     console.error('Get all users error:', error);

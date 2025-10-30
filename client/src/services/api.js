@@ -46,13 +46,15 @@ export const usersAPI = {
   // FTD's endpoints
   updateFTDs: (id, ftds) => api.put(`/users/${id}/ftds`, { ftds }),
   addFTDs: (id, amount) => api.post(`/users/${id}/add-ftds`, { amount }),
-  incrementFTD: (id) => api.post(`/users/${id}/increment-ftd`),
+  incrementFTD: (id) => api.post(`/users/${id}/ftd/increment`), // ⭐ Updated path
+  decrementFTD: (id) => api.post(`/users/${id}/ftd/decrement`), // ⭐ NEW!
   
   // Plus Ones endpoints
   updatePlusOnes: (id, plusOnes) => api.put(`/users/${id}/plusones`, { plusOnes }),
-  incrementPlusOne: (id) => api.post(`/users/${id}/increment-plusone`),
+  incrementPlusOne: (id) => api.post(`/users/${id}/plusone/increment`), // ⭐ Updated path
+  decrementPlusOne: (id) => api.post(`/users/${id}/plusone/decrement`), // ⭐ NEW!
   
-  // Admin user management endpoints - NEW!
+  // Admin user management endpoints
   editUser: (id, userData) => api.put(`/users/${id}/edit`, userData),
   resetPassword: (id, newPassword) => api.put(`/users/${id}/reset-password`, { newPassword }),
   toggleAdmin: (id) => api.put(`/users/${id}/toggle-admin`),

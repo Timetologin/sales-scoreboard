@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { usersAPI } from '../services/api';
-import { Trophy, Crown, Medal, TrendingDown, Users, Target, Award } from 'lucide-react';
+import { Trophy, Crown, Medal, TrendingUp, Users, Target, Award } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Dashboard = () => {
@@ -19,7 +19,17 @@ const Dashboard = () => {
   const fetchLeaderboard = async () => {
     try {
       const response = await usersAPI.getLeaderboard();
-      setLeaderboard(response.data);
+      
+      // ⭐ שינוי: מיון מהגבוה לנמוך (הפוך מהקוד המקורי)
+      const sortedData = response.data.sort((a, b) => b.ftds - a.ftds);
+      
+      // עדכון דירוגים
+      const rankedData = sortedData.map((user, index) => ({
+        ...user,
+        rank: index + 1
+      }));
+      
+      setLeaderboard(rankedData);
       setError('');
     } catch (err) {
       setError('Failed to load leaderboard');
@@ -32,32 +42,45 @@ const Dashboard = () => {
   const getRankIcon = (rank) => {
     switch (rank) {
       case 1:
-        return <Crown className="w-6 h-6 text-tiger-yellow" />;
+        return <Crown className="w-8 h-8 text-yellow-400" />;
       case 2:
-        return <Medal className="w-6 h-6 text-gray-400" />;
+        return <Medal className="w-8 h-8 text-gray-400" />;
       case 3:
-        return <Medal className="w-6 h-6 text-orange-600" />;
+        return <Medal className="w-8 h-8 text-orange-600" />;
       default:
         return null;
     }
   };
 
-  const getRankBadgeColor = (rank) => {
+  const getPodiumHeight = (rank) => {
     switch (rank) {
       case 1:
-        return 'alpha-badge';
+        return 'h-72';
       case 2:
-        return 'bg-gradient-to-r from-gray-400 to-gray-500 text-gray-900 px-4 py-2 rounded-full font-bold shadow-lg';
+        return 'h-56';
       case 3:
-        return 'bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-full font-bold shadow-lg';
+        return 'h-48';
       default:
-        return 'tiger-badge';
+        return 'h-40';
+    }
+  };
+
+  const getPodiumOrder = (rank) => {
+    switch (rank) {
+      case 1:
+        return 'order-2'; // מרכז
+      case 2:
+        return 'order-1'; // שמאל
+      case 3:
+        return 'order-3'; // ימין
+      default:
+        return '';
     }
   };
 
   const totalFTDs = leaderboard.reduce((sum, user) => sum + user.ftds, 0);
   const totalPlusOnes = leaderboard.reduce((sum, user) => sum + (user.plusOnes || 0), 0);
-  const minFTDs = leaderboard[0]?.ftds || 0;
+  const maxFTDs = leaderboard[0]?.ftds || 0; // ⭐ שינוי: max במקום min
 
   if (loading) {
     return (
@@ -70,9 +93,13 @@ const Dashboard = () => {
     );
   }
 
+  // TOP 3 Players
+  const topThree = leaderboard.slice(0, 3);
+  const restOfPlayers = leaderboard.slice(3);
+
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header Stats */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -84,7 +111,10 @@ const Dashboard = () => {
               <Trophy className="w-12 h-12 text-tiger-yellow" />
               FTD Leaderboard
             </h1>
-            <p className="text-tiger-orange font-bold text-xl">First Time Deposits - Lower is Better! 🎯</p>
+            {/* ⭐ שינוי: Higher is Better */}
+            <p className="text-tiger-orange font-bold text-xl flex items-center justify-center gap-2">
+              First Time Deposits - 🔥 Higher is Better! 🚀
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
@@ -104,8 +134,9 @@ const Dashboard = () => {
               <p className="text-4xl font-extrabold alpha-text">{totalPlusOnes}</p>
             </div>
             <div className="card-alpha text-center prowl-effect">
-              <TrendingDown className="w-10 h-10 text-blue-500 mx-auto mb-2" />
-              <p className="text-sm text-tiger-yellow font-bold">Best (Lowest)</p>
+              {/* ⭐ שינוי: TrendingUp במקום TrendingDown */}
+              <TrendingUp className="w-10 h-10 text-blue-500 mx-auto mb-2" />
+              <p className="text-sm text-tiger-yellow font-bold">Best (Highest)</p>
               <p className="text-4xl font-extrabold alpha-text">
                 {leaderboard[0] ? `${leaderboard[0].ftds} FTD's` : '0 FTD\'s'}
               </p>
@@ -113,84 +144,221 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        {/* Leaderboard */}
+        {/* ⭐ חדש: TOP 3 PODIUM */}
+        {topThree.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="mb-12"
+          >
+            <h2 className="text-4xl font-extrabold text-center alpha-text mb-8 flex items-center justify-center gap-3">
+              <Trophy className="w-10 h-10 text-yellow-400" />
+              🏆 TOP 3 CHAMPIONS 🏆
+              <Trophy className="w-10 h-10 text-yellow-400" />
+            </h2>
+
+            <div className="flex justify-center items-end gap-4 mb-8 flex-wrap md:flex-nowrap">
+              {topThree.map((user) => (
+                <motion.div
+                  key={user.id}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: user.rank * 0.2 }}
+                  className={`${getPodiumOrder(user.rank)} ${getPodiumHeight(user.rank)} 
+                    ${user.rank === 1 ? 'w-80' : 'w-72'} 
+                    card-alpha relative overflow-hidden group prowl-effect`}
+                  style={{
+                    background: user.rank === 1 
+                      ? 'linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.1))'
+                      : user.rank === 2
+                      ? 'linear-gradient(135deg, rgba(192, 192, 192, 0.2), rgba(169, 169, 169, 0.1))'
+                      : 'linear-gradient(135deg, rgba(205, 127, 50, 0.2), rgba(184, 115, 51, 0.1))',
+                    borderWidth: user.rank === 1 ? '4px' : '3px',
+                    borderColor: user.rank === 1 
+                      ? '#FFD700' 
+                      : user.rank === 2 
+                      ? '#C0C0C0' 
+                      : '#CD7F32',
+                  }}
+                >
+                  {/* Rank Badge */}
+                  <div className="absolute top-4 right-4 z-10">
+                    <div className={`
+                      ${user.rank === 1 ? 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-yellow-900' : ''}
+                      ${user.rank === 2 ? 'bg-gradient-to-r from-gray-400 to-gray-500 text-gray-900' : ''}
+                      ${user.rank === 3 ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white' : ''}
+                      px-4 py-2 rounded-full font-bold shadow-lg text-xl
+                    `}>
+                      #{user.rank}
+                    </div>
+                  </div>
+
+                  {/* Medal/Crown */}
+                  <div className="text-center mt-6 mb-4">
+                    {user.rank === 1 && (
+                      <motion.div
+                        animate={{ rotate: [0, -10, 10, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        <Crown className="w-20 h-20 text-yellow-400 mx-auto drop-shadow-lg" />
+                      </motion.div>
+                    )}
+                    {user.rank === 2 && <Medal className="w-16 h-16 text-gray-400 mx-auto drop-shadow-lg" />}
+                    {user.rank === 3 && <Medal className="w-16 h-16 text-orange-600 mx-auto drop-shadow-lg" />}
+                  </div>
+
+                  {/* Profile Picture */}
+                  <div className="flex justify-center mb-4">
+                    <img
+                      src={user.profilePicture}
+                      alt={user.name}
+                      className={`rounded-full object-cover shadow-2xl
+                        ${user.rank === 1 ? 'w-32 h-32 border-8 border-yellow-400' : 'w-24 h-24 border-6 border-tiger-orange'}
+                      `}
+                    />
+                  </div>
+
+                  {/* User Name */}
+                  <h3 className={`text-center font-extrabold mb-2 truncate px-4
+                    ${user.rank === 1 ? 'text-3xl text-yellow-300' : 'text-2xl text-tiger-yellow'}
+                  `}>
+                    {user.name}
+                  </h3>
+
+                  {/* Email */}
+                  <p className="text-center text-sm text-orange-200 mb-4 truncate px-4">
+                    {user.email}
+                  </p>
+
+                  {/* FTD Count - BIG */}
+                  <div className="text-center mb-3">
+                    <p className={`font-extrabold
+                      ${user.rank === 1 ? 'text-6xl text-yellow-400' : 'text-5xl alpha-text'}
+                    `}>
+                      {user.ftds}
+                    </p>
+                    <p className="text-sm text-tiger-orange font-bold">FTD's</p>
+                  </div>
+
+                  {/* Plus Ones */}
+                  <div className="flex justify-center items-center gap-2 mb-4">
+                    <Award className="w-5 h-5 text-cyan-400" />
+                    <span className="text-cyan-300 font-bold">
+                      {user.plusOnes || 0} +1's
+                    </span>
+                  </div>
+
+                  {/* Celebration Text for Winner */}
+                  {user.rank === 1 && (
+                    <motion.div
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="text-center"
+                    >
+                      <p className="text-yellow-300 font-extrabold text-lg">
+                        👑 THE CHAMPION! 👑
+                      </p>
+                      <p className="text-yellow-400 font-bold text-sm mt-1">
+                        🎉 Everyone bow down! 🎉
+                      </p>
+                    </motion.div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Rest of Leaderboard */}
         {error && (
           <div className="mb-6 p-4 bg-red-900/30 border-2 border-red-500 rounded-lg">
             <p className="text-red-300 font-bold">{error}</p>
           </div>
         )}
 
-        <div className="space-y-3">
-          {leaderboard.map((user, index) => (
-            <motion.div
-              key={user.id}
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className={`card-alpha flex items-center gap-4 prowl-effect ${
-                user.rank === 1 ? 'ring-4 ring-tiger-yellow shadow-2xl' : ''
-              }`}
-            >
-              {/* Rank Badge */}
-              <div className="flex-shrink-0">
-                <div className={getRankBadgeColor(user.rank)}>
-                  {user.rank === 1 && <Crown className="w-8 h-8" />}
-                  {user.rank !== 1 && `#${user.rank}`}
-                </div>
-              </div>
-
-              {/* Profile Picture */}
-              <img
-                src={user.profilePicture}
-                alt={user.name}
-                className="w-20 h-20 rounded-full object-cover border-4 border-tiger-orange shadow-lg"
-              />
-
-              {/* User Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-xl font-extrabold text-tiger-yellow truncate">{user.name}</h3>
-                  {getRankIcon(user.rank)}
-                </div>
-                <p className="text-sm text-orange-200 truncate">{user.email}</p>
-                
-                {/* Stats Row */}
-                <div className="flex gap-4 mt-2">
-                  <div className="flex items-center gap-1">
-                    <Target className="w-4 h-4 text-tiger-yellow" />
-                    <span className="text-xs text-tiger-orange font-bold">{user.ftds} FTD's</span>
+        {restOfPlayers.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-3xl font-extrabold text-center alpha-text mb-6">
+              📊 All Players
+            </h2>
+            <div className="space-y-3">
+              {restOfPlayers.map((user, index) => (
+                <motion.div
+                  key={user.id}
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="card-alpha flex items-center gap-4 prowl-effect"
+                >
+                  {/* Rank Badge */}
+                  <div className="flex-shrink-0">
+                    <div className="tiger-badge">
+                      #{user.rank}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Award className="w-4 h-4 text-cyan-400" />
-                    <span className="text-xs text-cyan-300 font-bold">{user.plusOnes || 0} +1's</span>
-                  </div>
-                </div>
 
-                {/* Progress Bar */}
-                <div className="mt-2 bg-dark-bg rounded-full h-3 overflow-hidden border border-tiger-orange">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ 
-                      width: `${100 - ((user.ftds / (leaderboard[leaderboard.length - 1]?.ftds || 1)) * 100)}%`
-                    }}
-                    transition={{ duration: 1, delay: index * 0.05 }}
-                    className={user.rank === 1 ? 'h-full alpha-tiger' : 'h-full tiger-gradient'}
+                  {/* Profile Picture */}
+                  <img
+                    src={user.profilePicture}
+                    alt={user.name}
+                    className="w-20 h-20 rounded-full object-cover border-4 border-tiger-orange shadow-lg"
                   />
-                </div>
-              </div>
 
-              {/* FTDs Count */}
-              <div className="text-right flex-shrink-0">
-                <p className="text-3xl font-extrabold alpha-text">
-                  {user.ftds}
-                </p>
-                <p className="text-xs text-tiger-orange font-bold">
-                  {user.rank === 1 ? '🏆 Leader' : `+${user.ftds - minFTDs} from leader`}
-                </p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                  {/* User Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-xl font-extrabold text-tiger-yellow truncate">
+                        {user.name}
+                      </h3>
+                    </div>
+                    <p className="text-sm text-orange-200 truncate">{user.email}</p>
+                    
+                    {/* Stats Row */}
+                    <div className="flex gap-4 mt-2">
+                      <div className="flex items-center gap-1">
+                        <Target className="w-4 h-4 text-tiger-yellow" />
+                        <span className="text-xs text-tiger-orange font-bold">
+                          {user.ftds} FTD's
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Award className="w-4 h-4 text-cyan-400" />
+                        <span className="text-xs text-cyan-300 font-bold">
+                          {user.plusOnes || 0} +1's
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mt-2 bg-dark-bg rounded-full h-3 overflow-hidden border border-tiger-orange">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ 
+                          width: maxFTDs > 0 ? `${(user.ftds / maxFTDs) * 100}%` : '0%'
+                        }}
+                        transition={{ duration: 1, delay: index * 0.05 }}
+                        className="h-full tiger-gradient"
+                      />
+                    </div>
+                  </div>
+
+                  {/* FTDs Count */}
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-3xl font-extrabold alpha-text">
+                      {user.ftds}
+                    </p>
+                    <p className="text-xs text-tiger-orange font-bold">
+                      {maxFTDs - user.ftds > 0 
+                        ? `-${maxFTDs - user.ftds} from leader` 
+                        : '👑 Leader'}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {leaderboard.length === 0 && !loading && (
           <div className="text-center py-12">
