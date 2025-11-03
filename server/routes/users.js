@@ -97,6 +97,35 @@ router.put('/:id/profile', auth, adminAuth, async (req, res) => {
   }
 });
 
+// ⭐ NEW: Update user daily target (Admin only)
+// @route   PUT /api/users/:id/daily-target
+// @desc    Update user's daily target
+// @access  Private + Admin
+router.put('/:id/daily-target', auth, adminAuth, async (req, res) => {
+  try {
+    const { dailyTarget } = req.body;
+    
+    if (typeof dailyTarget !== 'number' || dailyTarget < 0) {
+      return res.status(400).json({ message: 'Invalid daily target value' });
+    }
+
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.dailyTarget = dailyTarget;
+    user.lastUpdated = Date.now();
+    await user.save();
+
+    res.json(user.getPublicProfile());
+  } catch (error) {
+    console.error('Update daily target error:', error);
+    res.status(500).json({ message: 'Server error updating daily target' });
+  }
+});
+
 // @route   PUT /api/users/:id/edit
 // @desc    Edit user details - name, email, role (Admin only)
 // @access  Private + Admin
@@ -244,7 +273,19 @@ router.post('/:id/add-ftds', auth, adminAuth, async (req, res) => {
     }
 
     user.ftds += amount;
+    user.dailyFTDs += amount; // ⭐ NEW: Also update daily FTDs
     user.lastUpdated = Date.now();
+    
+    // ⭐ NEW: Check if daily target achieved
+    if (user.dailyTarget > 0 && user.dailyFTDs >= user.dailyTarget && !user.dailyTargetAchieved) {
+      user.dailyTargetAchieved = true;
+      user.totalDaysAchieved += 1;
+      user.currentStreak += 1;
+      if (user.currentStreak > user.longestStreak) {
+        user.longestStreak = user.currentStreak;
+      }
+    }
+    
     await user.save();
 
     res.json(user.getPublicProfile());
@@ -266,7 +307,19 @@ router.post('/:id/ftd/increment', auth, adminAuth, async (req, res) => {
     }
 
     user.ftds += 1;
+    user.dailyFTDs += 1; // ⭐ NEW: Also update daily FTDs
     user.lastUpdated = Date.now();
+    
+    // ⭐ NEW: Check if daily target achieved
+    if (user.dailyTarget > 0 && user.dailyFTDs >= user.dailyTarget && !user.dailyTargetAchieved) {
+      user.dailyTargetAchieved = true;
+      user.totalDaysAchieved += 1;
+      user.currentStreak += 1;
+      if (user.currentStreak > user.longestStreak) {
+        user.longestStreak = user.currentStreak;
+      }
+    }
+    
     await user.save();
 
     res.json(user.getPublicProfile());
@@ -276,7 +329,7 @@ router.post('/:id/ftd/increment', auth, adminAuth, async (req, res) => {
   }
 });
 
-// ⭐ NEW: Decrement FTD endpoint
+// ⭐ Decrement FTD endpoint
 // @route   POST /api/users/:id/ftd/decrement
 // @desc    Remove -1 FTD (Admin only) - Cannot go below 0
 // @access  Private + Admin
@@ -294,6 +347,9 @@ router.post('/:id/ftd/decrement', auth, adminAuth, async (req, res) => {
     }
 
     user.ftds -= 1;
+    if (user.dailyFTDs > 0) {
+      user.dailyFTDs -= 1; // ⭐ NEW: Also update daily FTDs
+    }
     user.lastUpdated = Date.now();
     await user.save();
 
@@ -316,7 +372,19 @@ router.post('/:id/increment-ftd', auth, adminAuth, async (req, res) => {
     }
 
     user.ftds += 1;
+    user.dailyFTDs += 1; // ⭐ NEW: Also update daily FTDs
     user.lastUpdated = Date.now();
+    
+    // ⭐ NEW: Check if daily target achieved
+    if (user.dailyTarget > 0 && user.dailyFTDs >= user.dailyTarget && !user.dailyTargetAchieved) {
+      user.dailyTargetAchieved = true;
+      user.totalDaysAchieved += 1;
+      user.currentStreak += 1;
+      if (user.currentStreak > user.longestStreak) {
+        user.longestStreak = user.currentStreak;
+      }
+    }
+    
     await user.save();
 
     res.json(user.getPublicProfile());
@@ -348,7 +416,7 @@ router.post('/:id/plusone/increment', auth, adminAuth, async (req, res) => {
   }
 });
 
-// ⭐ NEW: Decrement Plus One endpoint
+// ⭐ Decrement Plus One endpoint
 // @route   POST /api/users/:id/plusone/decrement
 // @desc    Remove -1 from Plus Ones counter (Admin only) - Cannot go below 0
 // @access  Private + Admin

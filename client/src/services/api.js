@@ -43,7 +43,7 @@ export const usersAPI = {
   getProfile: (id) => api.get(`/users/profile/${id}`),
   updateProfile: (data) => api.put("/users/profile", data),
   
-  // ✅ חדש! עבור Admin לעדכן profile של משתמשים אחרים
+  // Admin: עבור עדכון profile של משתמשים אחרים
   updateUserProfile: (id, data) => api.put(`/users/${id}/profile`, data),
   
   // FTD's endpoints
@@ -57,6 +57,9 @@ export const usersAPI = {
   incrementPlusOne: (id) => api.post(`/users/${id}/plusone/increment`),
   decrementPlusOne: (id) => api.post(`/users/${id}/plusone/decrement`),
   
+  // ⭐ NEW: Daily Target endpoint
+  updateDailyTarget: (id, dailyTarget) => api.put(`/users/${id}/daily-target`, { dailyTarget }),
+  
   // Admin user management endpoints
   editUser: (id, userData) => api.put(`/users/${id}/edit`, userData),
   changePassword: (id, newPassword) => api.put(`/users/${id}/reset-password`, { newPassword }),
@@ -68,6 +71,12 @@ export const usersAPI = {
   createUser: (userData) => api.post("/users/create", userData),
   deleteUser: (id) => api.delete(`/users/${id}`),
   resetLeaderboard: () => api.post("/users/reset-leaderboard"),
+};
+
+// ⭐ NEW: Settings API
+export const settingsAPI = {
+  getMonthlyTarget: () => api.get("/settings/monthly-target"),
+  updateMonthlyTarget: (monthlyTarget) => api.put("/settings/monthly-target", { monthlyTarget }),
 };
 
 export const aiAPI = {

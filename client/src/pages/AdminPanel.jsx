@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { usersAPI } from '../services/api';
+import { usersAPI, settingsAPI } from '../services/api';
 import {
     Users,
     Plus,
@@ -21,6 +21,9 @@ import {
     Mail,
     User as UserIcon,
     Upload,
+    Star,
+    TrendingUp,
+    Calendar,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -111,6 +114,7 @@ const AdminPanel = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(null);
     const [showPasswordModal, setShowPasswordModal] = useState(null);
+    const [showTargetsModal, setShowTargetsModal] = useState(false); // ⭐ NEW
     const [editingFTDs, setEditingFTDs] = useState(null);
     const [editingPlusOnes, setEditingPlusOnes] = useState(null);
     const [showAvatarModal, setShowAvatarModal] = useState(null);
@@ -294,8 +298,15 @@ const AdminPanel = () => {
                     </div>
                 </div>
 
-                {/* Action Buttons */}
+                {/* Action Buttons - ⭐ הוספתי כפתור Manage Targets */}
                 <div className="flex gap-4 mb-8">
+                    <button
+                        onClick={() => setShowTargetsModal(true)}
+                        className="btn-alpha flex items-center gap-2"
+                    >
+                        <Star className="w-5 h-5" />
+                        🎯 Manage Targets
+                    </button>
                     <button
                         onClick={() => setShowCreateModal(true)}
                         className="btn-alpha flex items-center gap-2"
@@ -338,7 +349,7 @@ const AdminPanel = () => {
                     )}
                 </AnimatePresence>
 
-                {/* Users Table */}
+                {/* Users Table - ⭐ הוספתי עמודת Daily Progress */}
                 <div className="card-alpha overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
@@ -349,255 +360,291 @@ const AdminPanel = () => {
                                     <th className="px-4 py-4 text-center text-tiger-yellow font-bold">📧 Email</th>
                                     <th className="px-4 py-4 text-center text-tiger-yellow font-bold">🎯 FTD's</th>
                                     <th className="px-4 py-4 text-center text-tiger-yellow font-bold">🏅 Plus Ones</th>
+                                    {/* ⭐ עמודה חדשה */}
+                                    <th className="px-4 py-4 text-center text-tiger-yellow font-bold">📊 Daily Progress</th>
                                     <th className="px-4 py-4 text-center text-tiger-yellow font-bold">👑 Role</th>
                                     <th className="px-4 py-4 text-center text-tiger-yellow font-bold">🛠️ Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {users.map((user, index) => (
-                                    <motion.tr
-                                        key={user.id}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: index * 0.05 }}
-                                        className="border-b border-tiger-orange/20 hover:bg-tiger-orange/10 transition-colors"
-                                    >
-                                        {/* Rank */}
-                                        <td className="px-4 py-4">
-                                            <div className="flex justify-center">
-                                                <span
-                                                    className={`inline-flex items-center justify-center w-10 h-10 rounded-full font-bold ${
-                                                        index === 0
-                                                            ? 'bg-yellow-400 text-yellow-900'
-                                                            : index === 1
-                                                            ? 'bg-gray-400 text-gray-900'
-                                                            : index === 2
-                                                            ? 'bg-orange-500 text-white'
-                                                            : 'bg-tiger-orange/30 text-tiger-orange'
-                                                    }`}
-                                                >
-                                                    #{index + 1}
-                                                </span>
-                                            </div>
-                                        </td>
+                                {users.map((user, index) => {
+                                    // ⭐ חישוב התקדמות יומית
+                                    const dailyProgress = user.dailyTarget > 0 
+                                        ? (user.dailyFTDs / user.dailyTarget) * 100 
+                                        : 0;
+                                    const dailyAchieved = user.dailyFTDs >= user.dailyTarget && user.dailyTarget > 0;
 
-                                        {/* User Avatar & Name */}
-                                        <td className="px-4 py-4">
-                                            <div className="flex items-center gap-3 justify-center">
-                                                <div className="relative group">
-                                                    <img
-                                                        src={user.profilePicture}
-                                                        alt={user.name}
-                                                        className="w-12 h-12 rounded-full object-cover border-2 border-tiger-orange cursor-pointer hover:border-tiger-yellow transition-all"
-                                                        onClick={() => {
-                                                            console.log('Clicked avatar for user:', user.id);
-                                                            setShowAvatarModal(user.id);
-                                                        }}
-                                                    />
-                                                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded-full transition-all flex items-center justify-center cursor-pointer"
-                                                        onClick={() => {
-                                                            console.log('Clicked overlay for user:', user.id);
-                                                            setShowAvatarModal(user.id);
-                                                        }}
+                                    return (
+                                        <motion.tr
+                                            key={user.id}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: index * 0.05 }}
+                                            className="border-b border-tiger-orange/20 hover:bg-tiger-orange/10 transition-colors"
+                                        >
+                                            {/* ...rest of the table cells remain the same until Daily Progress... */}
+                                            {/* (כל הקוד הקיים של Rank, User, Email, FTDs, Plus Ones נשאר אותו דבר) */}
+                                            
+                                            {/* Rank */}
+                                            <td className="px-4 py-4">
+                                                <div className="flex justify-center">
+                                                    <span
+                                                        className={`inline-flex items-center justify-center w-10 h-10 rounded-full font-bold ${
+                                                            index === 0
+                                                                ? 'bg-yellow-400 text-yellow-900'
+                                                                : index === 1
+                                                                ? 'bg-gray-400 text-gray-900'
+                                                                : index === 2
+                                                                ? 'bg-orange-500 text-white'
+                                                                : 'bg-tiger-orange/30 text-tiger-orange'
+                                                        }`}
                                                     >
-                                                        <Image className="w-5 h-5 text-white opacity-0 group-hover:opacity-100" />
+                                                        #{index + 1}
+                                                    </span>
+                                                </div>
+                                            </td>
+
+                                            {/* User Avatar & Name */}
+                                            <td className="px-4 py-4">
+                                                <div className="flex items-center gap-3 justify-center">
+                                                    <div className="relative group">
+                                                        <img
+                                                            src={user.profilePicture}
+                                                            alt={user.name}
+                                                            className="w-12 h-12 rounded-full object-cover border-2 border-tiger-orange cursor-pointer hover:border-tiger-yellow transition-all"
+                                                            onClick={() => setShowAvatarModal(user.id)}
+                                                        />
+                                                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded-full transition-all flex items-center justify-center cursor-pointer"
+                                                            onClick={() => setShowAvatarModal(user.id)}
+                                                        >
+                                                            <Image className="w-5 h-5 text-white opacity-0 group-hover:opacity-100" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-center">
+                                                        <p className="text-tiger-yellow font-bold">{user.name}</p>
+                                                        {index < 3 && (
+                                                            <p className="text-xs text-tiger-orange">
+                                                                {index === 0
+                                                                    ? '👑 Champion'
+                                                                    : index === 1
+                                                                    ? '🥈 Runner-up'
+                                                                    : '🥉 Third Place'}
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 </div>
-                                                <div className="text-center">
-                                                    <p className="text-tiger-yellow font-bold">{user.name}</p>
-                                                    {index < 3 && (
-                                                        <p className="text-xs text-tiger-orange">
-                                                            {index === 0
-                                                                ? '👑 Champion'
-                                                                : index === 1
-                                                                ? '🥈 Runner-up'
-                                                                : '🥉 Third Place'}
-                                                        </p>
+                                            </td>
+
+                                            {/* Email */}
+                                            <td className="px-4 py-4 text-center text-orange-200">{user.email}</td>
+
+                                            {/* FTD's with +/- buttons (קיים - לא שינינו) */}
+                                            <td className="px-4 py-4">
+                                                {editingFTDs === user.id ? (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <input
+                                                            type="number"
+                                                            defaultValue={user.ftds}
+                                                            className="w-20 px-2 py-1 bg-dark-bg border-2 border-tiger-orange rounded text-center text-tiger-yellow font-bold"
+                                                            onKeyPress={(e) => {
+                                                                if (e.key === 'Enter') {
+                                                                    handleUpdateFTDs(user.id, e.target.value);
+                                                                }
+                                                            }}
+                                                            autoFocus
+                                                        />
+                                                        <button
+                                                            onClick={() => {
+                                                                const input = document.querySelector('input[type="number"]');
+                                                                handleUpdateFTDs(user.id, input.value);
+                                                            }}
+                                                            className="p-1 bg-green-600 hover:bg-green-700 rounded"
+                                                        >
+                                                            <Save className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setEditingFTDs(null)}
+                                                            className="p-1 bg-red-600 hover:bg-red-700 rounded"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <button
+                                                            onClick={() => handleDecrementFTD(user.id)}
+                                                            disabled={user.ftds <= 0}
+                                                            className={`p-2 rounded-lg transition-all ${
+                                                                user.ftds <= 0
+                                                                    ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                                                    : 'bg-red-600 hover:bg-red-700 prowl-effect'
+                                                            }`}
+                                                        >
+                                                            <Minus className="w-4 h-4 text-white" />
+                                                        </button>
+
+                                                        <span
+                                                            onClick={() => setEditingFTDs(user.id)}
+                                                            className="text-2xl font-bold alpha-text min-w-[3rem] text-center cursor-pointer hover:text-tiger-yellow transition-colors"
+                                                        >
+                                                            {user.ftds}
+                                                        </span>
+
+                                                        <button
+                                                            onClick={() => handleIncrementFTD(user.id)}
+                                                            className="p-2 bg-green-600 hover:bg-green-700 rounded-lg transition-all prowl-effect"
+                                                        >
+                                                            <Plus className="w-4 h-4 text-white" />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </td>
+
+                                            {/* Plus Ones (קיים - לא שינינו) */}
+                                            <td className="px-4 py-4">
+                                                {editingPlusOnes === user.id ? (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <input
+                                                            type="number"
+                                                            defaultValue={user.plusOnes || 0}
+                                                            className="w-20 px-2 py-1 bg-dark-bg border-2 border-cyan-400 rounded text-center text-cyan-300 font-bold"
+                                                            onKeyPress={(e) => {
+                                                                if (e.key === 'Enter') {
+                                                                    handleUpdatePlusOnes(user.id, e.target.value);
+                                                                }
+                                                            }}
+                                                            autoFocus
+                                                        />
+                                                        <button
+                                                            onClick={() => {
+                                                                const input = document.querySelector('input[type="number"]');
+                                                                handleUpdatePlusOnes(user.id, input.value);
+                                                            }}
+                                                            className="p-1 bg-green-600 hover:bg-green-700 rounded"
+                                                        >
+                                                            <Save className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setEditingPlusOnes(null)}
+                                                            className="p-1 bg-red-600 hover:bg-red-700 rounded"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <button
+                                                            onClick={() => handleDecrementPlusOne(user.id)}
+                                                            disabled={(user.plusOnes || 0) <= 0}
+                                                            className={`p-2 rounded-lg transition-all ${
+                                                                (user.plusOnes || 0) <= 0
+                                                                    ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                                                    : 'bg-orange-600 hover:bg-orange-700 prowl-effect'
+                                                            }`}
+                                                        >
+                                                            <Minus className="w-4 h-4 text-white" />
+                                                        </button>
+
+                                                        <span
+                                                            onClick={() => setEditingPlusOnes(user.id)}
+                                                            className="text-2xl font-bold text-cyan-300 min-w-[3rem] text-center cursor-pointer hover:text-cyan-400 transition-colors"
+                                                        >
+                                                            {user.plusOnes || 0}
+                                                        </span>
+
+                                                        <button
+                                                            onClick={() => handleIncrementPlusOne(user.id)}
+                                                            className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all prowl-effect"
+                                                        >
+                                                            <Plus className="w-4 h-4 text-white" />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </td>
+
+                                            {/* ⭐ עמודת Daily Progress - חדש! */}
+                                            <td className="px-4 py-4">
+                                                <div className="flex flex-col items-center gap-2">
+                                                    {user.dailyTarget > 0 ? (
+                                                        <>
+                                                            <div className="flex items-center gap-2 w-full max-w-[150px]">
+                                                                <div className="flex-1 h-4 bg-gray-800 rounded-full overflow-hidden border border-tiger-orange/30">
+                                                                    <div
+                                                                        style={{ width: `${Math.min(dailyProgress, 100)}%` }}
+                                                                        className={`h-full rounded-full transition-all ${
+                                                                            dailyAchieved 
+                                                                                ? 'bg-gradient-to-r from-green-400 to-green-600' 
+                                                                                : 'bg-gradient-to-r from-tiger-orange to-tiger-yellow'
+                                                                        }`}
+                                                                    />
+                                                                </div>
+                                                                <span className="text-xs font-semibold text-tiger-yellow w-12 text-right">
+                                                                    {user.dailyFTDs}/{user.dailyTarget}
+                                                                </span>
+                                                            </div>
+                                                            {dailyAchieved && (
+                                                                <span className="flex items-center gap-1 px-2 py-0.5 bg-green-600/30 text-green-300 text-xs rounded-full font-medium border border-green-500">
+                                                                    <Star className="w-3 h-3 fill-current" />
+                                                                    Achieved!
+                                                                </span>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <span className="text-sm text-gray-500">No target</span>
                                                     )}
                                                 </div>
-                                            </div>
-                                        </td>
+                                            </td>
 
-                                        {/* Email */}
-                                        <td className="px-4 py-4 text-center text-orange-200">{user.email}</td>
-
-                                        {/* FTD's with +/- buttons */}
-                                        <td className="px-4 py-4">
-                                            {editingFTDs === user.id ? (
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <input
-                                                        type="number"
-                                                        defaultValue={user.ftds}
-                                                        className="w-20 px-2 py-1 bg-dark-bg border-2 border-tiger-orange rounded text-center text-tiger-yellow font-bold"
-                                                        onKeyPress={(e) => {
-                                                            if (e.key === 'Enter') {
-                                                                handleUpdateFTDs(user.id, e.target.value);
-                                                            }
-                                                        }}
-                                                        autoFocus
-                                                    />
-                                                    <button
-                                                        onClick={() => {
-                                                            const input = document.querySelector('input[type="number"]');
-                                                            handleUpdateFTDs(user.id, input.value);
-                                                        }}
-                                                        className="p-1 bg-green-600 hover:bg-green-700 rounded"
-                                                    >
-                                                        <Save className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setEditingFTDs(null)}
-                                                        className="p-1 bg-red-600 hover:bg-red-700 rounded"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <button
-                                                        onClick={() => handleDecrementFTD(user.id)}
-                                                        disabled={user.ftds <= 0}
-                                                        className={`p-2 rounded-lg transition-all ${
-                                                            user.ftds <= 0
-                                                                ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                                                                : 'bg-red-600 hover:bg-red-700 prowl-effect'
-                                                        }`}
-                                                        title="Remove FTD"
-                                                    >
-                                                        <Minus className="w-4 h-4 text-white" />
-                                                    </button>
-
+                                            {/* Role (קיים - לא שינינו) */}
+                                            <td className="px-4 py-4">
+                                                <div className="flex justify-center">
                                                     <span
-                                                        onClick={() => setEditingFTDs(user.id)}
-                                                        className="text-2xl font-bold alpha-text min-w-[3rem] text-center cursor-pointer hover:text-tiger-yellow transition-colors"
-                                                    >
-                                                        {user.ftds}
-                                                    </span>
-
-                                                    <button
-                                                        onClick={() => handleIncrementFTD(user.id)}
-                                                        className="p-2 bg-green-600 hover:bg-green-700 rounded-lg transition-all prowl-effect"
-                                                        title="Add FTD"
-                                                    >
-                                                        <Plus className="w-4 h-4 text-white" />
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </td>
-
-                                        {/* Plus Ones with +/- buttons */}
-                                        <td className="px-4 py-4">
-                                            {editingPlusOnes === user.id ? (
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <input
-                                                        type="number"
-                                                        defaultValue={user.plusOnes || 0}
-                                                        className="w-20 px-2 py-1 bg-dark-bg border-2 border-cyan-400 rounded text-center text-cyan-300 font-bold"
-                                                        onKeyPress={(e) => {
-                                                            if (e.key === 'Enter') {
-                                                                handleUpdatePlusOnes(user.id, e.target.value);
-                                                            }
-                                                        }}
-                                                        autoFocus
-                                                    />
-                                                    <button
-                                                        onClick={() => {
-                                                            const input = document.querySelector('input[type="number"]');
-                                                            handleUpdatePlusOnes(user.id, input.value);
-                                                        }}
-                                                        className="p-1 bg-green-600 hover:bg-green-700 rounded"
-                                                    >
-                                                        <Save className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setEditingPlusOnes(null)}
-                                                        className="p-1 bg-red-600 hover:bg-red-700 rounded"
-                                                    >
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <button
-                                                        onClick={() => handleDecrementPlusOne(user.id)}
-                                                        disabled={(user.plusOnes || 0) <= 0}
-                                                        className={`p-2 rounded-lg transition-all ${
-                                                            (user.plusOnes || 0) <= 0
-                                                                ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                                                                : 'bg-orange-600 hover:bg-orange-700 prowl-effect'
+                                                        className={`px-4 py-2 rounded-lg font-bold ${
+                                                            user.isAdmin
+                                                                ? 'bg-purple-600 text-white'
+                                                                : 'bg-gray-600 text-white'
                                                         }`}
-                                                        title="Remove Plus One"
                                                     >
-                                                        <Minus className="w-4 h-4 text-white" />
-                                                    </button>
-
-                                                    <span
-                                                        onClick={() => setEditingPlusOnes(user.id)}
-                                                        className="text-2xl font-bold text-cyan-300 min-w-[3rem] text-center cursor-pointer hover:text-cyan-400 transition-colors"
-                                                    >
-                                                        {user.plusOnes || 0}
+                                                        {user.isAdmin ? '👑 Admin' : '👤 User'}
                                                     </span>
+                                                </div>
+                                            </td>
 
+                                            {/* Actions (קיים - לא שינינו) */}
+                                            <td className="px-4 py-4">
+                                                <div className="flex justify-center gap-2">
                                                     <button
-                                                        onClick={() => handleIncrementPlusOne(user.id)}
+                                                        onClick={() => setShowEditModal(user.id)}
                                                         className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all prowl-effect"
-                                                        title="Add Plus One"
+                                                        title="Edit User"
                                                     >
-                                                        <Plus className="w-4 h-4 text-white" />
+                                                        <Edit className="w-5 h-5 text-white" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setShowPasswordModal(user.id)}
+                                                        className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-all prowl-effect"
+                                                        title="Change Password"
+                                                    >
+                                                        <Key className="w-5 h-5 text-white" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteUser(user.id)}
+                                                        className="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all prowl-effect"
+                                                        title="Delete User"
+                                                    >
+                                                        <Trash2 className="w-5 h-5 text-white" />
                                                     </button>
                                                 </div>
-                                            )}
-                                        </td>
-
-                                        {/* Role */}
-                                        <td className="px-4 py-4">
-                                            <div className="flex justify-center">
-                                                <span
-                                                    className={`px-4 py-2 rounded-lg font-bold ${
-                                                        user.isAdmin
-                                                            ? 'bg-purple-600 text-white'
-                                                            : 'bg-gray-600 text-white'
-                                                    }`}
-                                                >
-                                                    {user.isAdmin ? '👑 Admin' : '👤 User'}
-                                                </span>
-                                            </div>
-                                        </td>
-
-                                        {/* Actions */}
-                                        <td className="px-4 py-4">
-                                            <div className="flex justify-center gap-2">
-                                                <button
-                                                    onClick={() => setShowEditModal(user.id)}
-                                                    className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-all prowl-effect"
-                                                    title="Edit User"
-                                                >
-                                                    <Edit className="w-5 h-5 text-white" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setShowPasswordModal(user.id)}
-                                                    className="p-2 bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-all prowl-effect"
-                                                    title="Change Password"
-                                                >
-                                                    <Key className="w-5 h-5 text-white" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteUser(user.id)}
-                                                    className="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-all prowl-effect"
-                                                    title="Delete User"
-                                                >
-                                                    <Trash2 className="w-5 h-5 text-white" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </motion.tr>
-                                ))}
+                                            </td>
+                                        </motion.tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                {/* Instructions */}
+                {/* Instructions - עדכנתי עם Target Management */}
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -634,26 +681,27 @@ const AdminPanel = () => {
                         </div>
                         <div>
                             <h4 className="text-tiger-yellow font-bold mb-2 flex items-center gap-2">
-                                <Image className="w-5 h-5" />
-                                Avatar Management:
+                                <Star className="w-5 h-5" />
+                                Target Management:
                             </h4>
                             <ul className="list-disc list-inside space-y-1 text-sm">
-                                <li>Click avatar to change it</li>
-                                <li>Upload custom image (auto-compressed)</li>
-                                <li>Choose from avatar gallery</li>
-                                <li>Use image URL</li>
+                                <li>Click "🎯 Manage Targets" to set goals</li>
+                                <li>Set <strong>Monthly Target</strong> for entire team</li>
+                                <li>Set <strong>Daily Target</strong> for each individual</li>
+                                <li>Daily targets reset at midnight (Israel Time)</li>
+                                <li>Progress bars show real-time achievements</li>
                             </ul>
                         </div>
                         <div>
                             <h4 className="text-tiger-yellow font-bold mb-2 flex items-center gap-2">
-                                <Trash2 className="w-5 h-5" />
+                                <Image className="w-5 h-5" />
                                 User Management:
                             </h4>
                             <ul className="list-disc list-inside space-y-1 text-sm">
+                                <li>Click avatar to change profile picture</li>
                                 <li>Edit: Change name, email, admin status</li>
-                                <li>Password: Change user password</li>
-                                <li>Delete: Remove user (requires confirmation)</li>
-                                <li><strong className="text-red-400">Deletion cannot be undone!</strong></li>
+                                <li>Password: Reset user password</li>
+                                <li>Delete: Remove user (cannot be undone)</li>
                             </ul>
                         </div>
                     </div>
@@ -713,21 +761,206 @@ const AdminPanel = () => {
                     userId={showAvatarModal}
                     currentAvatar={users.find((u) => u.id === showAvatarModal)?.profilePicture}
                     userName={users.find((u) => u.id === showAvatarModal)?.name}
-                    onClose={() => {
-                        console.log('Closing avatar modal');
-                        setShowAvatarModal(null);
+                    onClose={() => setShowAvatarModal(null)}
+                    onSelect={(newAvatar) => handleUpdateAvatar(showAvatarModal, newAvatar)}
+                />
+            )}
+
+            {/* ⭐ NEW: Targets Modal */}
+            {showTargetsModal && (
+                <TargetsModal
+                    users={users}
+                    onClose={() => setShowTargetsModal(null)}
+                    onSuccess={() => {
+                        setShowTargetsModal(null);
+                        fetchUsers();
+                        showMessage('success', '✅ Targets updated successfully!');
                     }}
-                    onSelect={(newAvatar) => {
-                        console.log('Selected new avatar:', newAvatar);
-                        handleUpdateAvatar(showAvatarModal, newAvatar);
-                    }}
+                    onError={(msg) => showMessage('error', msg)}
                 />
             )}
         </div>
     );
 };
 
-// Edit User Modal
+// ⭐ NEW: Targets Modal Component
+const TargetsModal = ({ users, onClose, onSuccess, onError }) => {
+    const [monthlyTarget, setMonthlyTarget] = useState(100);
+    const [userTargets, setUserTargets] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const response = await settingsAPI.getMonthlyTarget();
+            setMonthlyTarget(response.data.monthlyTarget);
+            
+            // Initialize user targets
+            const targets = {};
+            users.forEach(user => {
+                targets[user.id] = user.dailyTarget || 0;
+            });
+            setUserTargets(targets);
+        } catch (err) {
+            console.error('Failed to fetch settings:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            // Update monthly target
+            await settingsAPI.updateMonthlyTarget(monthlyTarget);
+            
+            // Update daily targets for each user
+            for (const userId in userTargets) {
+                await usersAPI.updateDailyTarget(userId, userTargets[userId]);
+            }
+            
+            onSuccess();
+        } catch (err) {
+            onError(err.response?.data?.message || 'Failed to update targets');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const updateUserTarget = (userId, value) => {
+        setUserTargets(prev => ({
+            ...prev,
+            [userId]: Math.max(0, parseInt(value) || 0)
+        }));
+    };
+
+    if (loading) {
+        return (
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="card-alpha max-w-4xl w-full p-6">
+                    <p className="text-center text-tiger-orange">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={(e) => e.target === e.currentTarget && onClose()}
+        >
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="card-alpha max-w-4xl w-full p-6 max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 className="text-3xl font-bold alpha-text flex items-center gap-2">
+                            <Star className="w-8 h-8 text-tiger-yellow" />
+                            🎯 Manage Targets
+                        </h2>
+                        <p className="text-sm text-orange-200 mt-1">
+                            Set monthly team goals and daily individual targets
+                        </p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="text-tiger-orange hover:text-tiger-yellow transition-colors p-2"
+                    >
+                        <X className="w-6 h-6" />
+                    </button>
+                </div>
+
+                {/* Monthly Target */}
+                <div className="mb-8 p-6 bg-gradient-to-r from-purple-900/40 to-blue-900/40 rounded-lg border-2 border-purple-500">
+                    <div className="flex items-center gap-3 mb-4">
+                        <Calendar className="w-8 h-8 text-purple-400" />
+                        <div>
+                            <h3 className="text-2xl font-bold text-purple-300">Monthly Team Target</h3>
+                            <p className="text-sm text-purple-200">
+                                Goal for {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                            </p>
+                        </div>
+                    </div>
+                    <input
+                        type="number"
+                        value={monthlyTarget}
+                        onChange={(e) => setMonthlyTarget(Math.max(0, parseInt(e.target.value) || 0))}
+                        className="input-field text-3xl font-bold text-center"
+                        min="0"
+                    />
+                    <p className="text-center text-sm text-purple-300 mt-2">
+                        Total FTDs the entire team should achieve this month
+                    </p>
+                </div>
+
+                {/* Daily Targets */}
+                <div>
+                    <h3 className="text-2xl font-bold alpha-text mb-4 flex items-center gap-2">
+                        <Target className="w-6 h-6 text-tiger-orange" />
+                        Daily Individual Targets
+                    </h3>
+                    <p className="text-sm text-orange-200 mb-4">
+                        Set daily FTD goals for each team member (resets at midnight Israel Time)
+                    </p>
+                    
+                    <div className="space-y-3">
+                        {users.map((user) => (
+                            <div key={user.id} className="flex items-center gap-4 p-4 bg-tiger-orange/10 rounded-lg border border-tiger-orange/30">
+                                <img
+                                    src={user.profilePicture}
+                                    alt={user.name}
+                                    className="w-12 h-12 rounded-full border-2 border-tiger-orange"
+                                />
+                                <div className="flex-1">
+                                    <p className="font-bold text-tiger-yellow">{user.name}</p>
+                                    <p className="text-xs text-orange-300">{user.email}</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <label className="text-sm font-bold text-tiger-orange">Daily Target:</label>
+                                    <input
+                                        type="number"
+                                        value={userTargets[user.id] || 0}
+                                        onChange={(e) => updateUserTarget(user.id, e.target.value)}
+                                        className="w-24 px-3 py-2 bg-dark-bg border-2 border-tiger-orange rounded text-center text-tiger-yellow font-bold"
+                                        min="0"
+                                    />
+                                    <span className="text-sm text-tiger-orange">FTDs/day</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 mt-6 pt-6 border-t-2 border-tiger-orange/30">
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="flex-1 btn-alpha flex items-center justify-center gap-2"
+                    >
+                        <Save className="w-5 h-5" />
+                        {saving ? '⏳ Saving...' : '💾 Save All Targets'}
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="flex-1 btn-secondary flex items-center justify-center gap-2"
+                    >
+                        <X className="w-5 h-5" />
+                        ❌ Cancel
+                    </button>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
+// Edit User Modal (unchanged)
 const EditUserModal = ({ userId, user, onClose, onSuccess, onError }) => {
     const [formData, setFormData] = useState({
         name: user?.name || '',
@@ -805,7 +1038,7 @@ const EditUserModal = ({ userId, user, onClose, onSuccess, onError }) => {
     );
 };
 
-// Password Modal
+// Password Modal (unchanged)
 const PasswordModal = ({ userId, userName, onClose, onSuccess, onError }) => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -867,7 +1100,7 @@ const PasswordModal = ({ userId, userName, onClose, onSuccess, onError }) => {
     );
 };
 
-// Avatar Modal
+// Avatar Modal (unchanged from original)
 const AvatarModal = ({ userId, currentAvatar, userName, onClose, onSelect }) => {
     const [uploadedImage, setUploadedImage] = useState(null);
     const [customUrl, setCustomUrl] = useState('');
@@ -890,12 +1123,7 @@ const AvatarModal = ({ userId, currentAvatar, userName, onClose, onSelect }) => 
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
-            onClick={(e) => {
-                if (e.target === e.currentTarget) {
-                    console.log('Clicked outside modal');
-                    onClose();
-                }
-            }}
+            onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -909,10 +1137,7 @@ const AvatarModal = ({ userId, currentAvatar, userName, onClose, onSelect }) => 
                         <p className="text-sm text-orange-200">For: <strong>{userName}</strong></p>
                     </div>
                     <button
-                        onClick={() => {
-                            console.log('Clicked X button');
-                            onClose();
-                        }}
+                        onClick={onClose}
                         className="text-tiger-orange hover:text-tiger-yellow transition-colors p-2"
                     >
                         <X className="w-6 h-6" />
@@ -988,10 +1213,7 @@ const AvatarModal = ({ userId, currentAvatar, userName, onClose, onSelect }) => 
                         {AVATAR_GALLERY.map((avatar, index) => (
                             <button
                                 key={index}
-                                onClick={() => {
-                                    console.log('Selected avatar from gallery:', avatar);
-                                    onSelect(avatar);
-                                }}
+                                onClick={() => onSelect(avatar)}
                                 className="group relative"
                             >
                                 <img
@@ -1011,7 +1233,7 @@ const AvatarModal = ({ userId, currentAvatar, userName, onClose, onSelect }) => 
     );
 };
 
-// Create User Modal
+// Create User Modal (unchanged from original)
 const CreateUserModal = ({ onClose, onSuccess, onError }) => {
     const [formData, setFormData] = useState({
         name: '',

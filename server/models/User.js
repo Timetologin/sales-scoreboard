@@ -33,6 +33,45 @@ const userSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
+  // ⭐ NEW: Target system fields
+  dailyTarget: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  dailyFTDs: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  lastDailyReset: {
+    type: Date,
+    default: Date.now
+  },
+  dailyTargetAchieved: {
+    type: Boolean,
+    default: false
+  },
+  monthlyTargetAchieved: {
+    type: Boolean,
+    default: false
+  },
+  totalDaysAchieved: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  currentStreak: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  longestStreak: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  // End of new fields
   isAdmin: {
     type: Boolean,
     default: false
@@ -76,6 +115,14 @@ userSchema.methods.getPublicProfile = function() {
     profilePicture: this.profilePicture,
     ftds: this.ftds,
     plusOnes: this.plusOnes,
+    dailyTarget: this.dailyTarget,
+    dailyFTDs: this.dailyFTDs,
+    lastDailyReset: this.lastDailyReset,
+    dailyTargetAchieved: this.dailyTargetAchieved,
+    monthlyTargetAchieved: this.monthlyTargetAchieved,
+    totalDaysAchieved: this.totalDaysAchieved,
+    currentStreak: this.currentStreak,
+    longestStreak: this.longestStreak,
     isAdmin: this.isAdmin,
     createdAt: this.createdAt,
     lastUpdated: this.lastUpdated

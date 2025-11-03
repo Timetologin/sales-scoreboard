@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const cron = require('node-cron');
 
 // Load environment variables
 dotenv.config();
@@ -10,6 +11,7 @@ dotenv.config();
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const aiRoutes = require('./routes/ai');
+const settingsRoutes = require('./routes/settings'); // ⭐ NEW
 
 // Initialize Express app
 const app = express();
@@ -21,7 +23,7 @@ app.use(cors({
     'https://www.ravanathelmet.fun',
     'https://ravanathelmet.fun',
     'https://sales-scoreboard-git-main-timetologins-projects.vercel.app',
-    /\.vercel\.app$/,  // מאפשר כל דומיין של Vercel
+    /\.vercel\.app$/,
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -50,6 +52,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/settings', settingsRoutes); // ⭐ NEW
 
 // 404 handler
 app.use((req, res) => {
@@ -65,12 +68,54 @@ app.use((err, req, res, next) => {
   });
 });
 
+// ⭐ NEW: Daily Reset Cron Job - Runs at midnight Israel time (00:00)
+const setupDailyReset = () => {
+  // Cron: 0 0 * * * = Every day at 00:00 (midnight)
+  cron.schedule('0 0 * * *', async () => {
+    console.log('🕐 Running daily reset at midnight (Israel Time)...');
+    try {
+      const User = require('./models/User');
+      const users = await User.find();
+      const today = new Date();
+      let resetCount = 0;
+      
+      for (const user of users) {
+        const lastReset = new Date(user.lastDailyReset);
+        const daysDiff = Math.floor((today - lastReset) / (1000 * 60 * 60 * 24));
+        
+        if (daysDiff >= 1) {
+          // Break streak if target wasn't achieved
+          if (!user.dailyTargetAchieved && user.currentStreak > 0) {
+            user.currentStreak = 0;
+          }
+          
+          // Reset daily values
+          user.dailyFTDs = 0;
+          user.dailyTargetAchieved = false;
+          user.lastDailyReset = today;
+          user.lastUpdated = Date.now();
+          
+          await user.save();
+          resetCount++;
+        }
+      }
+      
+      console.log(`✅ Daily reset completed: ${resetCount} users reset`);
+    } catch (error) {
+      console.error('❌ Daily reset error:', error);
+    }
+  }, {
+    timezone: "Asia/Jerusalem" // ⭐ Israel timezone
+  });
+  
+  console.log('⏰ Cron job initialized - Daily reset at midnight Israel Time');
+};
+
 // Database connection
 const connectDB = async () => {
   try {
     console.log("⏳ Trying to connect to MongoDB...");
     
-    // Check if MONGODB_URI exists
     if (!process.env.MONGODB_URI) {
       console.error('❌ ERROR: MONGODB_URI is not defined in .env file');
       console.log('Please create a .env file in the server directory with:');
@@ -85,11 +130,12 @@ const connectDB = async () => {
     
     console.log(`✅ Connected to MongoDB Atlas: ${conn.connection.host}`);
     
-    // Import User model
+    // Import models
     const User = require('./models/User');
+    const Settings = require('./models/Settings');
     
     // ============================================
-    // AUTO-MIGRATION: Add ftds and plusOnes to existing users
+    // AUTO-MIGRATION: Add fields to existing users
     // ============================================
     console.log('\n🔄 Checking for users that need migration...');
     
@@ -97,7 +143,9 @@ const connectDB = async () => {
       const usersNeedingMigration = await User.find({
         $or: [
           { ftds: { $exists: false } },
-          { plusOnes: { $exists: false } }
+          { plusOnes: { $exists: false } },
+          { dailyTarget: { $exists: false } },
+          { dailyFTDs: { $exists: false } }
         ]
       });
 
@@ -118,20 +166,81 @@ const connectDB = async () => {
             needsSave = true;
           }
           
+          // ⭐ NEW: Migrate target fields
+          if (user.dailyTarget === undefined) {
+            user.dailyTarget = 0;
+            needsSave = true;
+          }
+          
+          if (user.dailyFTDs === undefined) {
+            user.dailyFTDs = 0;
+            needsSave = true;
+          }
+          
+          if (user.lastDailyReset === undefined) {
+            user.lastDailyReset = Date.now();
+            needsSave = true;
+          }
+          
+          if (user.dailyTargetAchieved === undefined) {
+            user.dailyTargetAchieved = false;
+            needsSave = true;
+          }
+          
+          if (user.monthlyTargetAchieved === undefined) {
+            user.monthlyTargetAchieved = false;
+            needsSave = true;
+          }
+          
+          if (user.totalDaysAchieved === undefined) {
+            user.totalDaysAchieved = 0;
+            needsSave = true;
+          }
+          
+          if (user.currentStreak === undefined) {
+            user.currentStreak = 0;
+            needsSave = true;
+          }
+          
+          if (user.longestStreak === undefined) {
+            user.longestStreak = 0;
+            needsSave = true;
+          }
+          
           if (needsSave) {
             user.lastUpdated = Date.now();
             await user.save();
-            console.log(`   ✅ Migrated user: ${user.name} (${user.email})`);
             migratedCount++;
           }
         }
         
         console.log(`✅ Migration completed: ${migratedCount} users updated\n`);
       } else {
-        console.log('✅ All users already have ftds and plusOnes\n');
+        console.log('✅ All users already have required fields\n');
       }
     } catch (migrationError) {
       console.error('⚠️  Migration warning:', migrationError.message);
+      console.log('Continuing with server startup...\n');
+    }
+    
+    // ⭐ NEW: Initialize Settings
+    console.log('🔧 Checking settings...');
+    try {
+      let settings = await Settings.findOne();
+      
+      if (!settings) {
+        console.log('📝 Creating default settings...');
+        settings = new Settings({
+          monthlyTarget: 100,
+          currentMonth: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+        });
+        await settings.save();
+        console.log('✅ Default settings created!');
+      }
+      
+      console.log(`✅ Settings initialized: Monthly Target = ${settings.monthlyTarget}\n`);
+    } catch (settingsError) {
+      console.error('⚠️  Settings initialization warning:', settingsError.message);
       console.log('Continuing with server startup...\n');
     }
     
@@ -207,7 +316,6 @@ const connectDB = async () => {
       let createdCount = 0;
       for (const userData of sampleUsers) {
         try {
-          // Check if user already exists
           const existingUser = await User.findOne({ email: userData.email });
           
           if (!existingUser) {
@@ -234,6 +342,9 @@ const connectDB = async () => {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('🎉 Database setup completed successfully!');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    
+    // ⭐ NEW: Start daily reset cron job
+    setupDailyReset();
     
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);
@@ -268,6 +379,9 @@ const startServer = async () => {
     console.log(`   GET    /api/users/all`);
     console.log(`   POST   /api/users/:id/increment-ftd`);
     console.log(`   POST   /api/users/:id/increment-plusone`);
+    console.log(`   PUT    /api/users/:id/daily-target`); // ⭐ NEW
+    console.log(`   GET    /api/settings/monthly-target`); // ⭐ NEW
+    console.log(`   PUT    /api/settings/monthly-target`); // ⭐ NEW
     console.log(`   POST   /api/ai/chat`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     console.log('🔥 Server is ready to accept requests! 🔥\n');

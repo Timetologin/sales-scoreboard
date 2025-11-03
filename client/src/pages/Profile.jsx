@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usersAPI } from '../services/api';
-import { User, Mail, Trophy, Target, Calendar, Edit2, Save, X, Award, Image, Upload } from 'lucide-react';
+import { User, Mail, Trophy, Target, Calendar, Edit2, Save, X, Award, Image, Upload, Flame, TrendingUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// ⭐ NEW: Image compression function
+// Image compression function
 const compressImage = (file, maxWidth = 200, maxHeight = 200, quality = 0.7) => {
   return new Promise((resolve, reject) => {
     if (!file || !file.type.startsWith('image/')) {
@@ -76,7 +76,7 @@ const Profile = () => {
   });
   const [saving, setSaving] = useState(false);
   
-  // ⭐ NEW: States for image upload
+  // States for image upload
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [showImageOptions, setShowImageOptions] = useState(false);
@@ -103,7 +103,6 @@ const Profile = () => {
     }
   };
 
-  // ⭐ NEW: Handle file upload
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -121,7 +120,6 @@ const Profile = () => {
     }
   };
 
-  // ⭐ NEW: Handle URL input
   const handleUrlChange = (url) => {
     setFormData({ ...formData, profilePicture: url });
     setImagePreview(url);
@@ -182,6 +180,12 @@ const Profile = () => {
     );
   }
 
+  // ⭐ NEW: Calculate daily progress
+  const dailyProgress = profile.dailyTarget > 0 
+    ? (profile.dailyFTDs / profile.dailyTarget) * 100 
+    : 0;
+  const dailyAchieved = profile.dailyFTDs >= profile.dailyTarget && profile.dailyTarget > 0;
+
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -227,7 +231,7 @@ const Profile = () => {
             {/* Left Column - Avatar and Basic Info */}
             <div className="md:col-span-1">
               <div className="text-center">
-                {/* ⭐ NEW: Avatar with upload option */}
+                {/* Avatar */}
                 <div className="relative inline-block mb-4">
                   <img
                     src={imagePreview || formData.profilePicture}
@@ -245,7 +249,7 @@ const Profile = () => {
                   )}
                 </div>
 
-                {/* ⭐ NEW: Image upload options */}
+                {/* Image upload options */}
                 {editing && showImageOptions && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -346,17 +350,77 @@ const Profile = () => {
                 <p className="text-lg text-orange-100">{profile.email}</p>
               </div>
 
+              {/* ⭐ NEW: Daily Target Section */}
+              {profile.dailyTarget > 0 && (
+                <div className="p-4 bg-gradient-to-r from-blue-900/40 to-purple-900/40 rounded-lg border-2 border-blue-500">
+                  <label className="flex items-center gap-2 text-sm font-bold text-blue-300 mb-3">
+                    <Target className="w-5 h-5" />
+                    My Daily Target
+                  </label>
+                  
+                  <div className="space-y-3">
+                    {/* Progress Numbers */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-3xl font-extrabold text-blue-300">
+                        {profile.dailyFTDs} / {profile.dailyTarget}
+                      </span>
+                      <span className="text-sm font-bold text-blue-400">
+                        {dailyProgress.toFixed(0)}%
+                      </span>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="relative h-6 bg-gray-800 rounded-full overflow-hidden border-2 border-blue-500">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.min(dailyProgress, 100)}%` }}
+                        transition={{ duration: 1, ease: "easeOut" }}
+                        className={`h-full ${
+                          dailyAchieved 
+                            ? 'bg-gradient-to-r from-green-400 to-green-600' 
+                            : 'bg-gradient-to-r from-blue-500 to-purple-600'
+                        }`}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-white font-bold text-xs drop-shadow-lg">
+                          {profile.dailyFTDs} FTDs Today
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Achievement Badge */}
+                    {dailyAchieved && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="text-center"
+                      >
+                        <p className="text-lg font-extrabold text-green-400 flex items-center justify-center gap-2">
+                          🎉 Daily Target Achieved! 🎉
+                        </p>
+                      </motion.div>
+                    )}
+
+                    {!dailyAchieved && profile.dailyTarget - profile.dailyFTDs > 0 && (
+                      <p className="text-sm text-blue-300 text-center">
+                        {profile.dailyTarget - profile.dailyFTDs} more FTDs to reach your goal! 💪
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* FTDs */}
               <div>
                 <label className="flex items-center gap-2 text-sm font-bold text-tiger-orange mb-2">
-                  <Target className="w-4 h-4" />
+                  <Trophy className="w-4 h-4" />
                   Total FTD's (First Time Deposits)
                 </label>
                 <p className="text-4xl font-extrabold alpha-text">
                   {profile.ftds} FTD's
                 </p>
                 <p className="text-sm text-orange-300 mt-1">
-                  {profile.rank === 1 ? '🏆 You are the leader!' : `${profile.ftds - (profile.leaderFtds || 0)} FTD's from the leader`}
+                  {profile.rank === 1 ? '🏆 You are the leader!' : `Rank #${profile.rank} on the leaderboard`}
                 </p>
               </div>
 
@@ -395,7 +459,7 @@ const Profile = () => {
         </motion.div>
 
         {/* Stats Cards */}
-        <div className="grid md:grid-cols-3 gap-4 mt-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -443,6 +507,24 @@ const Profile = () => {
               <div>
                 <p className="text-sm text-tiger-orange font-bold">Plus Ones</p>
                 <p className="text-3xl font-extrabold text-cyan-400">{profile.plusOnes || 0}</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ⭐ NEW: Streak Card */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            className="card-alpha prowl-effect"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-r from-orange-600 to-red-600 rounded-lg">
+                <Flame className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <p className="text-sm text-tiger-orange font-bold">Current Streak</p>
+                <p className="text-3xl font-extrabold text-orange-400">{profile.currentStreak || 0} 🔥</p>
               </div>
             </div>
           </motion.div>

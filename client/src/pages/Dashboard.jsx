@@ -1,18 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { usersAPI } from '../services/api';
-import { Trophy, Crown, Medal, TrendingUp, Users, Target, Award } from 'lucide-react';
+import { usersAPI, settingsAPI } from '../services/api';
+import { Trophy, Crown, Medal, TrendingUp, Users, Target, Award, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
+  const [monthlyTarget, setMonthlyTarget] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     fetchLeaderboard();
+    fetchMonthlyTarget();
     
     // Auto-refresh every 30 seconds
-    const interval = setInterval(fetchLeaderboard, 30000);
+    const interval = setInterval(() => {
+      fetchLeaderboard();
+      fetchMonthlyTarget();
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -20,7 +25,7 @@ const Dashboard = () => {
     try {
       const response = await usersAPI.getLeaderboard();
       
-      // ⭐ שינוי: מיון מהגבוה לנמוך (הפוך מהקוד המקורי)
+      // מיון מהגבוה לנמוך
       const sortedData = response.data.sort((a, b) => b.ftds - a.ftds);
       
       // עדכון דירוגים
@@ -36,6 +41,15 @@ const Dashboard = () => {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMonthlyTarget = async () => {
+    try {
+      const response = await settingsAPI.getMonthlyTarget();
+      setMonthlyTarget(response.data.monthlyTarget);
+    } catch (err) {
+      console.error('Failed to fetch monthly target:', err);
     }
   };
 
@@ -55,7 +69,7 @@ const Dashboard = () => {
   const getPodiumHeight = (rank) => {
     switch (rank) {
       case 1:
-        return 'h-80'; // ⭐ Increased height for winner
+        return 'h-80';
       case 2:
         return 'h-64';
       case 3:
@@ -80,7 +94,11 @@ const Dashboard = () => {
 
   const totalFTDs = leaderboard.reduce((sum, user) => sum + user.ftds, 0);
   const totalPlusOnes = leaderboard.reduce((sum, user) => sum + (user.plusOnes || 0), 0);
-  const maxFTDs = leaderboard[0]?.ftds || 0; // ⭐ שינוי: max במקום min
+  const maxFTDs = leaderboard[0]?.ftds || 0;
+  
+  // ⭐ NEW: Monthly target progress
+  const monthlyProgress = monthlyTarget > 0 ? (totalFTDs / monthlyTarget) * 100 : 0;
+  const monthlyAchieved = totalFTDs >= monthlyTarget && monthlyTarget > 0;
 
   if (loading) {
     return (
@@ -109,13 +127,81 @@ const Dashboard = () => {
           <div className="text-center mb-6">
             <h1 className="text-5xl font-extrabold alpha-text mb-2 flex items-center justify-center gap-3">
               <Trophy className="w-12 h-12 text-tiger-yellow" />
-              FTD Leaderboard
+              Tiger's Pride Leaderboard
             </h1>
-            {/* ⭐ שינוי: Higher is Better */}
             <p className="text-tiger-orange font-bold text-xl flex items-center justify-center gap-2">
-              First Time Deposits - 🔥 Higher is Better! 🚀
+              Track your progress and compete with the team! 🔥 Higher is Better! 🚀
             </p>
           </div>
+
+          {/* ⭐ NEW: Monthly Target Card */}
+          {monthlyTarget > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mb-6 card-alpha prowl-effect"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-8 h-8 text-tiger-yellow" />
+                  <div>
+                    <h3 className="text-2xl font-bold alpha-text">Monthly Team Goal</h3>
+                    <p className="text-sm text-tiger-orange">
+                      {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-4xl font-extrabold alpha-text">{totalFTDs}</p>
+                  <p className="text-sm text-tiger-yellow font-bold">/ {monthlyTarget} FTDs</p>
+                </div>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="relative">
+                <div className="h-8 bg-gray-800 rounded-full overflow-hidden border-2 border-tiger-orange">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(monthlyProgress, 100)}%` }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className={`h-full ${
+                      monthlyAchieved 
+                        ? 'bg-gradient-to-r from-green-400 via-green-500 to-green-600' 
+                        : 'tiger-gradient'
+                    }`}
+                  />
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-white font-bold text-sm drop-shadow-lg">
+                    {monthlyProgress.toFixed(1)}% Complete
+                  </span>
+                </div>
+              </div>
+
+              {monthlyAchieved && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-3 text-center"
+                >
+                  <p className="text-2xl font-extrabold text-green-400 flex items-center justify-center gap-2">
+                    🎉 MONTHLY GOAL ACHIEVED! 🎉
+                  </p>
+                  <p className="text-sm text-green-300 mt-1">
+                    Amazing teamwork! Keep crushing it! 💪
+                  </p>
+                </motion.div>
+              )}
+
+              {!monthlyAchieved && monthlyTarget - totalFTDs > 0 && (
+                <div className="mt-3 text-center">
+                  <p className="text-lg font-bold text-tiger-yellow">
+                    {monthlyTarget - totalFTDs} more FTDs to reach the goal! 🎯
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="card-alpha text-center prowl-effect">
@@ -134,7 +220,6 @@ const Dashboard = () => {
               <p className="text-4xl font-extrabold alpha-text">{totalPlusOnes}</p>
             </div>
             <div className="card-alpha text-center prowl-effect">
-              {/* ⭐ שינוי: TrendingUp במקום TrendingDown */}
               <TrendingUp className="w-10 h-10 text-blue-500 mx-auto mb-2" />
               <p className="text-sm text-tiger-yellow font-bold">Best (Highest)</p>
               <p className="text-4xl font-extrabold alpha-text">
@@ -144,7 +229,7 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        {/* ⭐ חדש: TOP 3 PODIUM - FIXED SPACING! */}
+        {/* TOP 3 PODIUM */}
         {topThree.length > 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -221,14 +306,14 @@ const Dashboard = () => {
                       />
                     </div>
 
-                    {/* ⭐ FIXED: User Name with better spacing */}
+                    {/* User Name */}
                     <h3 className={`text-center font-extrabold px-4 leading-tight
                       ${user.rank === 1 ? 'text-2xl text-yellow-300 mb-2' : 'text-xl text-tiger-yellow mb-2'}
                     `}>
                       {user.name}
                     </h3>
 
-                    {/* ⭐ FIXED: Email with better spacing */}
+                    {/* Email */}
                     <p className="text-center text-xs text-orange-200 px-4 mb-3 leading-relaxed">
                       {user.email}
                     </p>
@@ -286,7 +371,7 @@ const Dashboard = () => {
         {restOfPlayers.length > 0 && (
           <div className="mb-8">
             <h2 className="text-3xl font-extrabold text-center alpha-text mb-6">
-              📊 All Players
+              📊 Full Leaderboard
             </h2>
             <div className="space-y-3">
               {restOfPlayers.map((user, index) => (
