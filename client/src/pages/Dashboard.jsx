@@ -25,10 +25,10 @@ const Dashboard = () => {
     try {
       const response = await usersAPI.getLeaderboard();
       
-      // מיון מהגבוה לנמוך
+      // Sort from highest to lowest
       const sortedData = response.data.sort((a, b) => b.ftds - a.ftds);
       
-      // עדכון דירוגים
+      // Add ranks
       const rankedData = sortedData.map((user, index) => ({
         ...user,
         rank: index + 1
@@ -69,24 +69,24 @@ const Dashboard = () => {
   const getPodiumHeight = (rank) => {
     switch (rank) {
       case 1:
-        return 'h-80';
+        return 'min-h-[420px]'; // Increased for Daily Target info
       case 2:
-        return 'h-64';
+        return 'min-h-[380px]';
       case 3:
-        return 'h-56';
+        return 'min-h-[360px]';
       default:
-        return 'h-40';
+        return 'min-h-[300px]';
     }
   };
 
   const getPodiumOrder = (rank) => {
     switch (rank) {
       case 1:
-        return 'order-2'; // מרכז
+        return 'order-2'; // Center
       case 2:
-        return 'order-1'; // שמאל
+        return 'order-1'; // Left
       case 3:
-        return 'order-3'; // ימין
+        return 'order-3'; // Right
       default:
         return '';
     }
@@ -96,7 +96,7 @@ const Dashboard = () => {
   const totalPlusOnes = leaderboard.reduce((sum, user) => sum + (user.plusOnes || 0), 0);
   const maxFTDs = leaderboard[0]?.ftds || 0;
   
-  // ⭐ NEW: Monthly target progress
+  // Monthly target progress
   const monthlyProgress = monthlyTarget > 0 ? (totalFTDs / monthlyTarget) * 100 : 0;
   const monthlyAchieved = totalFTDs >= monthlyTarget && monthlyTarget > 0;
 
@@ -134,7 +134,7 @@ const Dashboard = () => {
             </p>
           </div>
 
-          {/* ⭐ NEW: Monthly Target Card */}
+          {/* Monthly Target Card */}
           {monthlyTarget > 0 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -229,7 +229,7 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        {/* TOP 3 PODIUM */}
+        {/* TOP 3 PODIUM - ENHANCED WITH DAILY TARGETS */}
         {topThree.length > 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -301,38 +301,66 @@ const Dashboard = () => {
                         src={user.profilePicture}
                         alt={user.name}
                         className={`rounded-full object-cover shadow-2xl
-                          ${user.rank === 1 ? 'w-32 h-32 border-8 border-yellow-400' : 'w-24 h-24 border-6 border-tiger-orange'}
+                          ${user.rank === 1 ? 'w-28 h-28 border-8 border-yellow-400' : 'w-20 h-20 border-6 border-tiger-orange'}
                         `}
                       />
                     </div>
 
                     {/* User Name */}
-                    <h3 className={`text-center font-extrabold px-4 leading-tight
-                      ${user.rank === 1 ? 'text-2xl text-yellow-300 mb-2' : 'text-xl text-tiger-yellow mb-2'}
+                    <h3 className={`text-center font-extrabold px-2 leading-tight mb-1
+                      ${user.rank === 1 ? 'text-xl text-yellow-300' : 'text-lg text-tiger-yellow'}
                     `}>
                       {user.name}
                     </h3>
 
                     {/* Email */}
-                    <p className="text-center text-xs text-orange-200 px-4 mb-3 leading-relaxed">
+                    <p className="text-center text-xs text-orange-200 px-2 mb-3 truncate">
                       {user.email}
                     </p>
                   </div>
 
-                  {/* Bottom Section */}
-                  <div className="pb-4">
+                  {/* Bottom Section - Stats */}
+                  <div className="pb-4 px-3">
                     {/* FTD Count - BIG */}
-                    <div className="text-center mb-2">
-                      <p className={`font-extrabold leading-none
+                    <div className="text-center mb-3">
+                      <p className={`font-extrabold leading-none mb-1
                         ${user.rank === 1 ? 'text-5xl text-yellow-400' : 'text-4xl alpha-text'}
                       `}>
                         {user.ftds}
                       </p>
-                      <p className="text-sm text-tiger-orange font-bold mt-1">FTD's</p>
+                      <p className="text-sm text-tiger-orange font-bold">FTD's</p>
                     </div>
 
+                    {/* Daily Target Info - NEW! */}
+                    {user.dailyTarget && user.dailyTarget > 0 && (
+                      <div className="mb-3 p-2 bg-tiger-orange/20 rounded-lg border border-tiger-orange/50">
+                        <div className="flex items-center justify-center gap-2 mb-1">
+                          <Target className="w-4 h-4 text-tiger-yellow" />
+                          <span className="text-xs text-tiger-yellow font-bold">
+                            Target: {user.dailyTarget}/day
+                          </span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2">
+                          <div
+                            className="bg-tiger-gradient h-2 rounded-full transition-all"
+                            style={{
+                              width: `${Math.min(((user.todayFTDs || 0) / user.dailyTarget) * 100, 100)}%`,
+                            }}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-center text-orange-200 mt-1">
+                          Today: {user.todayFTDs || 0} FTDs
+                        </p>
+                        {user.todayFTDs >= user.dailyTarget && (
+                          <p className="text-xs text-center text-green-400 font-bold mt-1">
+                            ✅ Daily Goal!
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {/* Plus Ones */}
-                    <div className="flex justify-center items-center gap-2 mb-3">
+                    <div className="flex justify-center items-center gap-2 mb-2">
                       <Award className="w-5 h-5 text-cyan-400" />
                       <span className="text-cyan-300 font-bold text-sm">
                         {user.plusOnes || 0} +1's
@@ -346,11 +374,8 @@ const Dashboard = () => {
                         transition={{ duration: 2, repeat: Infinity }}
                         className="text-center px-2"
                       >
-                        <p className="text-yellow-300 font-extrabold text-base mb-1">
+                        <p className="text-yellow-300 font-extrabold text-sm mb-1">
                           👑 THE CHAMPION! 👑
-                        </p>
-                        <p className="text-yellow-400 font-bold text-xs">
-                          🎉 Everyone bow down! 🎉
                         </p>
                       </motion.div>
                     )}
@@ -361,7 +386,7 @@ const Dashboard = () => {
           </motion.div>
         )}
 
-        {/* Rest of Leaderboard */}
+        {/* Rest of Leaderboard - ENHANCED WITH DAILY TARGETS */}
         {error && (
           <div className="mb-6 p-4 bg-red-900/30 border-2 border-red-500 rounded-lg">
             <p className="text-red-300 font-bold">{error}</p>
@@ -419,18 +444,42 @@ const Dashboard = () => {
                           {user.plusOnes || 0} +1's
                         </span>
                       </div>
+                      {/* Daily Target in List - NEW! */}
+                      {user.dailyTarget && user.dailyTarget > 0 && (
+                        <div className="flex items-center gap-1">
+                          <Target className="w-4 h-4 text-green-400" />
+                          <span className="text-xs text-green-300 font-bold">
+                            Today: {user.todayFTDs || 0}/{user.dailyTarget}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Progress Bar */}
+                    {/* Progress Bar - Shows Daily Target if exists, otherwise overall progress */}
                     <div className="mt-2 bg-dark-bg rounded-full h-3 overflow-hidden border border-tiger-orange">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ 
-                          width: maxFTDs > 0 ? `${(user.ftds / maxFTDs) * 100}%` : '0%'
-                        }}
-                        transition={{ duration: 1, delay: index * 0.05 }}
-                        className="h-full tiger-gradient"
-                      />
+                      {user.dailyTarget && user.dailyTarget > 0 ? (
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ 
+                            width: `${Math.min(((user.todayFTDs || 0) / user.dailyTarget) * 100, 100)}%`
+                          }}
+                          transition={{ duration: 1, delay: index * 0.05 }}
+                          className={`h-full ${
+                            user.todayFTDs >= user.dailyTarget 
+                              ? 'bg-gradient-to-r from-green-400 to-green-600'
+                              : 'tiger-gradient'
+                          }`}
+                        />
+                      ) : (
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ 
+                            width: maxFTDs > 0 ? `${(user.ftds / maxFTDs) * 100}%` : '0%'
+                          }}
+                          transition={{ duration: 1, delay: index * 0.05 }}
+                          className="h-full tiger-gradient"
+                        />
+                      )}
                     </div>
                   </div>
 
