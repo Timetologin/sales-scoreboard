@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const { protect, adminOnly } = require('../middleware/auth');
+const { auth, adminAuth } = require('../middleware/auth'); // ⭐ תוקן כאן!
 
 // ============================================
 // GET /api/notes - Get user's notes
 // ============================================
-router.get('/', protect, async (req, res) => {
+router.get('/', auth, async (req, res) => { // ⭐ auth במקום protect
   try {
     const user = await User.findById(req.user.id);
     
@@ -24,7 +24,7 @@ router.get('/', protect, async (req, res) => {
 // ============================================
 // GET /api/notes/all - Get all notes (Admin only)
 // ============================================
-router.get('/all', protect, adminOnly, async (req, res) => {
+router.get('/all', auth, adminAuth, async (req, res) => { // ⭐ auth, adminAuth
   try {
     const users = await User.find({}, 'name email profilePicture notes');
     
@@ -49,7 +49,7 @@ router.get('/all', protect, adminOnly, async (req, res) => {
 // ============================================
 // POST /api/notes - Create a note
 // ============================================
-router.post('/', protect, async (req, res) => {
+router.post('/', auth, async (req, res) => { // ⭐ auth במקום protect
   try {
     const { title, content, color } = req.body;
     
@@ -88,7 +88,7 @@ router.post('/', protect, async (req, res) => {
 // ============================================
 // PUT /api/notes/:noteId - Update a note
 // ============================================
-router.put('/:noteId', protect, async (req, res) => {
+router.put('/:noteId', auth, async (req, res) => { // ⭐ auth במקום protect
   try {
     const { noteId } = req.params;
     const { title, content, color } = req.body;
@@ -126,7 +126,7 @@ router.put('/:noteId', protect, async (req, res) => {
 // ============================================
 // DELETE /api/notes/:noteId - Delete a note
 // ============================================
-router.delete('/:noteId', protect, async (req, res) => {
+router.delete('/:noteId', auth, async (req, res) => { // ⭐ auth במקום protect
   try {
     const { noteId } = req.params;
     
