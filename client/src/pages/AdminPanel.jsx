@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { usersAPI, settingsAPI } from '../services/api';
+import { usersAPI, settingsAPI, notesAPI } from '../services/api';
 import {
     Users,
     Plus,
@@ -23,6 +23,7 @@ import {
     Upload,
     TrendingUp,
     Calendar,
+    FileText,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -118,6 +119,11 @@ const AdminPanel = () => {
     const [showAvatarModal, setShowAvatarModal] = useState(null);
     const [message, setMessage] = useState({ type: '', text: '' });
 
+    // ⭐ NEW: Notes states
+    const [showNotesPanel, setShowNotesPanel] = useState(false);
+    const [allNotes, setAllNotes] = useState([]);
+    const [notesLoading, setNotesLoading] = useState(false);
+
     useEffect(() => {
         fetchUsers();
     }, []);
@@ -132,6 +138,39 @@ const AdminPanel = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // ⭐ NEW: Fetch all notes
+    const fetchAllNotes = async () => {
+        setNotesLoading(true);
+        try {
+            const response = await notesAPI.getAllNotes();
+            setAllNotes(response.data.allNotes || []);
+        } catch (err) {
+            console.error('Failed to fetch all notes:', err);
+            showMessage('error', '❌ Failed to fetch notes');
+        } finally {
+            setNotesLoading(false);
+        }
+    };
+
+    // ⭐ NEW: Toggle notes panel
+    const handleToggleNotesPanel = async () => {
+        if (!showNotesPanel) {
+            await fetchAllNotes();
+        }
+        setShowNotesPanel(!showNotesPanel);
+    };
+
+    // ⭐ NEW: Get color classes for notes
+    const getColorClasses = (color) => {
+        const colors = {
+            blue: 'bg-blue-900/40 border-blue-500',
+            green: 'bg-green-900/40 border-green-500',
+            purple: 'bg-purple-900/40 border-purple-500',
+            orange: 'bg-orange-900/40 border-orange-500'
+        };
+        return colors[color] || colors.blue;
     };
 
     const showMessage = (type, text) => {
@@ -236,6 +275,7 @@ const AdminPanel = () => {
 
     const totalFTDs = users.reduce((sum, user) => sum + (user.ftds || 0), 0);
     const totalPlusOnes = users.reduce((sum, user) => sum + (user.plusOnes || 0), 0);
+    const totalNotes = allNotes.reduce((sum, userNotes) => sum + (userNotes.notes?.length || 0), 0);
 
     if (loading) {
         return (
@@ -330,6 +370,20 @@ const AdminPanel = () => {
                     transition={{ delay: 0.3 }}
                     className="flex flex-wrap gap-4 mb-8"
                 >
+                    {/* ⭐ NEW: All Notes Button */}
+                    <button
+                        onClick={handleToggleNotesPanel}
+                        className="btn-secondary flex items-center gap-2"
+                    >
+                        <FileText className="w-5 h-5" />
+                        📝 {showNotesPanel ? 'Hide All Notes' : 'View All Notes'}
+                        {showNotesPanel && totalNotes > 0 && (
+                            <span className="ml-1 px-2 py-0.5 bg-tiger-orange rounded-full text-xs font-bold">
+                                {totalNotes}
+                            </span>
+                        )}
+                    </button>
+
                     <button
                         onClick={() => setShowTargetsModal(true)}
                         className="btn-secondary flex items-center gap-2"
@@ -362,6 +416,94 @@ const AdminPanel = () => {
                         🔄 Refresh
                     </button>
                 </motion.div>
+
+                {/* ⭐ NEW: All Notes Panel */}
+                <AnimatePresence>
+                    {showNotesPanel && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mb-8"
+                        >
+                            <div className="card-alpha">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-3xl font-bold alpha-text flex items-center gap-2">
+                                        <FileText className="w-8 h-8" />
+                                        📝 All User Notes
+                                    </h2>
+                                    <button
+                                        onClick={fetchAllNotes}
+                                        className="btn-secondary flex items-center gap-2 text-sm"
+                                    >
+                                        <RefreshCw className="w-4 h-4" />
+                                        Refresh Notes
+                                    </button>
+                                </div>
+
+                                {notesLoading ? (
+                                    <div className="text-center py-8">
+                                        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-tiger-orange mx-auto mb-4"></div>
+                                        <p className="text-tiger-orange">Loading notes...</p>
+                                    </div>
+                                ) : allNotes.length === 0 ? (
+                                    <div className="text-center py-12">
+                                        <FileText className="w-24 h-24 text-tiger-orange/30 mx-auto mb-4" />
+                                        <h3 className="text-2xl font-bold text-tiger-orange mb-2">No notes yet</h3>
+                                        <p className="text-orange-200">Users haven't created any notes</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {allNotes.map((userNotes) => (
+                                            <div key={userNotes.userId} className="border-b border-tiger-orange/30 pb-6 last:border-b-0">
+                                                {/* User Header */}
+                                                <div className="flex items-center gap-3 mb-4">
+                                                    <img
+                                                        src={userNotes.userAvatar}
+                                                        alt={userNotes.userName}
+                                                        className="w-12 h-12 rounded-full border-2 border-tiger-orange"
+                                                    />
+                                                    <div>
+                                                        <h3 className="text-xl font-bold text-tiger-yellow">
+                                                            {userNotes.userName}
+                                                        </h3>
+                                                        <p className="text-sm text-orange-200">{userNotes.userEmail}</p>
+                                                    </div>
+                                                    <div className="ml-auto">
+                                                        <span className="px-3 py-1 bg-tiger-orange/30 text-tiger-yellow rounded-full text-sm font-bold">
+                                                            {userNotes.notes.length} {userNotes.notes.length === 1 ? 'Note' : 'Notes'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Notes Grid */}
+                                                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                    {userNotes.notes.map((note) => (
+                                                        <div
+                                                            key={note._id}
+                                                            className={`p-4 rounded-lg border-2 ${getColorClasses(note.color)}`}
+                                                        >
+                                                            <h4 className="font-bold text-tiger-yellow text-sm mb-2">
+                                                                {note.title}
+                                                            </h4>
+                                                            <p className="text-orange-200 text-xs whitespace-pre-wrap mb-2">
+                                                                {note.content}
+                                                            </p>
+                                                            <p className="text-orange-300/60 text-xs">
+                                                                {new Date(note.updatedAt).toLocaleDateString()} at{' '}
+                                                                {new Date(note.updatedAt).toLocaleTimeString()}
+                                                            </p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Users Table */}
                 <div className="card-alpha overflow-hidden">
@@ -704,16 +846,14 @@ const AdminPanel = () => {
                         </div>
                         <div>
                             <h4 className="text-tiger-yellow font-bold mb-2 flex items-center gap-2">
-                                <Trash2 className="w-5 h-5" />
-                                User Management:
+                                <FileText className="w-5 h-5" />
+                                Notes Management:
                             </h4>
                             <ul className="list-disc list-inside space-y-1 text-sm">
-                                <li>Edit: Change name, email, admin status</li>
-                                <li>Password: Change user password</li>
-                                <li>Delete: Remove user (requires confirmation)</li>
-                                <li>
-                                    <strong className="text-red-400">Deletion cannot be undone!</strong>
-                                </li>
+                                <li>View all user notes in one place</li>
+                                <li>See notes organized by user</li>
+                                <li>Track user engagement</li>
+                                <li>Read-only access to user notes</li>
                             </ul>
                         </div>
                     </div>

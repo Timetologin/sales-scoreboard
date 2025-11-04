@@ -78,14 +78,41 @@ const userSchema = new mongoose.Schema({
     min: 0
   },
   longestStreak: {
-    type: Number,
-    default: 0,
-    min: 0
+  type: Number,
+  default: 0,
+  min: 0
+},
+// ⭐ NEW: Notes system
+notes: [{
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+    maxlength: 100
   },
-  isAdmin: {
-    type: Boolean,
-    default: false
+  content: {
+    type: String,
+    required: true,
+    maxlength: 500
   },
+  color: {
+    type: String,
+    enum: ['blue', 'green', 'purple', 'orange'],
+    default: 'blue'
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+}],
+isAdmin: {
+  type: Boolean,
+  default: false
+},
   createdAt: {
     type: Date,
     default: Date.now

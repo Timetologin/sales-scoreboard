@@ -12,6 +12,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const aiRoutes = require('./routes/ai');
 const settingsRoutes = require('./routes/settings'); // ⭐ NEW
+const notesRoutes = require('./routes/notes');
 
 // Initialize Express app
 const app = express();
@@ -53,6 +54,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/settings', settingsRoutes); // ⭐ NEW
+app.use('/api/notes', notesRoutes);
 
 // 404 handler
 app.use((req, res) => {

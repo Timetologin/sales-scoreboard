@@ -83,4 +83,22 @@ export const aiAPI = {
   sendMessage: (message) => api.post("/ai/chat", { message }),
 };
 
+// ⭐ NEW: Notes API
+export const notesAPI = {
+  // Get my notes
+  getMyNotes: () => api.get("/notes"),
+  
+  // Get all notes (Admin only)
+  getAllNotes: () => api.get("/notes/all"),
+  
+  // Create note
+  createNote: (noteData) => api.post("/notes", noteData),
+  
+  // Update note
+  updateNote: (noteId, noteData) => api.put(`/notes/${noteId}`, noteData),
+  
+  // Delete note
+  deleteNote: (noteId) => api.delete(`/notes/${noteId}`),
+};
+
 export default api;
