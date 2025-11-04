@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
-  // ⭐ NEW: Target system fields
+  // ⭐ Target system fields
   dailyTarget: {
     type: Number,
     default: 0,
@@ -43,6 +43,17 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     min: 0
+  },
+  todayFTDs: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  lastResetDate: {
+    type: String,
+    default: function() {
+      return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
+    }
   },
   lastDailyReset: {
     type: Date,
@@ -71,7 +82,6 @@ const userSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
-  // End of new fields
   isAdmin: {
     type: Boolean,
     default: false
@@ -88,17 +98,25 @@ const userSchema = new mongoose.Schema({
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
-    return next();
+  // Hash password if modified
+  if (this.isModified('password')) {
+    try {
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+    } catch (error) {
+      return next(error);
+    }
   }
   
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
+  // ⭐ Check and reset todayFTDs at midnight (Israel time)
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });
+  if (this.lastResetDate !== today) {
+    this.todayFTDs = 0;
+    this.lastResetDate = today;
+    this.dailyTargetAchieved = false;
   }
+  
+  next();
 });
 
 // Method to compare password
@@ -117,6 +135,8 @@ userSchema.methods.getPublicProfile = function() {
     plusOnes: this.plusOnes,
     dailyTarget: this.dailyTarget,
     dailyFTDs: this.dailyFTDs,
+    todayFTDs: this.todayFTDs,
+    lastResetDate: this.lastResetDate,
     lastDailyReset: this.lastDailyReset,
     dailyTargetAchieved: this.dailyTargetAchieved,
     monthlyTargetAchieved: this.monthlyTargetAchieved,

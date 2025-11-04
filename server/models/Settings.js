@@ -13,6 +13,11 @@ const settingsSchema = new mongoose.Schema({
       return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     }
   },
+  settingsType: {
+    type: String,
+    default: 'global',
+    unique: true
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -23,7 +28,6 @@ const settingsSchema = new mongoose.Schema({
   }
 });
 
-// Update the updatedAt field before saving
 settingsSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();

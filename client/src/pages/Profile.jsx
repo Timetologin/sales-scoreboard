@@ -180,11 +180,11 @@ const Profile = () => {
     );
   }
 
-  // ⭐ NEW: Calculate daily progress
+  // ⭐ Calculate daily progress using todayFTDs
   const dailyProgress = profile.dailyTarget > 0 
-    ? (profile.dailyFTDs / profile.dailyTarget) * 100 
+    ? ((profile.todayFTDs || 0) / profile.dailyTarget) * 100 
     : 0;
-  const dailyAchieved = profile.dailyFTDs >= profile.dailyTarget && profile.dailyTarget > 0;
+  const dailyAchieved = (profile.todayFTDs || 0) >= profile.dailyTarget && profile.dailyTarget > 0;
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
@@ -350,7 +350,7 @@ const Profile = () => {
                 <p className="text-lg text-orange-100">{profile.email}</p>
               </div>
 
-              {/* ⭐ NEW: Daily Target Section */}
+              {/* ⭐ Daily Target Section */}
               {profile.dailyTarget > 0 && (
                 <div className="p-4 bg-gradient-to-r from-blue-900/40 to-purple-900/40 rounded-lg border-2 border-blue-500">
                   <label className="flex items-center gap-2 text-sm font-bold text-blue-300 mb-3">
@@ -362,7 +362,7 @@ const Profile = () => {
                     {/* Progress Numbers */}
                     <div className="flex items-center justify-between">
                       <span className="text-3xl font-extrabold text-blue-300">
-                        {profile.dailyFTDs} / {profile.dailyTarget}
+                        {profile.todayFTDs || 0} / {profile.dailyTarget}
                       </span>
                       <span className="text-sm font-bold text-blue-400">
                         {dailyProgress.toFixed(0)}%
@@ -383,7 +383,7 @@ const Profile = () => {
                       />
                       <div className="absolute inset-0 flex items-center justify-center">
                         <span className="text-white font-bold text-xs drop-shadow-lg">
-                          {profile.dailyFTDs} FTDs Today
+                          {profile.todayFTDs || 0} FTDs Today
                         </span>
                       </div>
                     </div>
@@ -401,9 +401,9 @@ const Profile = () => {
                       </motion.div>
                     )}
 
-                    {!dailyAchieved && profile.dailyTarget - profile.dailyFTDs > 0 && (
+                    {!dailyAchieved && profile.dailyTarget - (profile.todayFTDs || 0) > 0 && (
                       <p className="text-sm text-blue-300 text-center">
-                        {profile.dailyTarget - profile.dailyFTDs} more FTDs to reach your goal! 💪
+                        {profile.dailyTarget - (profile.todayFTDs || 0)} more FTDs to reach your goal! 💪
                       </p>
                     )}
                   </div>
@@ -511,7 +511,7 @@ const Profile = () => {
             </div>
           </motion.div>
 
-          {/* ⭐ NEW: Streak Card */}
+          {/* ⭐ Streak Card */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}

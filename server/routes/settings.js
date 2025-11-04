@@ -9,61 +9,46 @@ const router = express.Router();
 // @access  Private
 router.get('/monthly-target', auth, async (req, res) => {
   try {
-    // Get or create settings
-    let settings = await Settings.findOne();
+    let settings = await Settings.findOne({ settingsType: 'global' });
     
     if (!settings) {
-      // Create default settings if not exists
-      settings = new Settings({
-        monthlyTarget: 100,
-        currentMonth: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
-      });
-      await settings.save();
+      settings = await Settings.create({ settingsType: 'global', monthlyTarget: 0 });
     }
     
-    res.json({
-      monthlyTarget: settings.monthlyTarget,
-      currentMonth: settings.currentMonth
-    });
+    res.json({ monthlyTarget: settings.monthlyTarget });
   } catch (error) {
-    console.error('Error fetching monthly target:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Get monthly target error:', error);
+    res.status(500).json({ message: 'Server error fetching monthly target' });
   }
 });
 
 // @route   PUT /api/settings/monthly-target
-// @desc    Update monthly target
-// @access  Private (Admin only)
+// @desc    Update monthly target (Admin only)
+// @access  Private + Admin
 router.put('/monthly-target', auth, adminAuth, async (req, res) => {
   try {
     const { monthlyTarget } = req.body;
     
-    if (monthlyTarget === undefined || monthlyTarget < 0) {
-      return res.status(400).json({ message: 'Invalid monthly target' });
+    if (typeof monthlyTarget !== 'number' || monthlyTarget < 0) {
+      return res.status(400).json({ message: 'Invalid monthly target value' });
     }
     
-    // Get or create settings
-    let settings = await Settings.findOne();
+    let settings = await Settings.findOne({ settingsType: 'global' });
     
     if (!settings) {
-      settings = new Settings({
-        monthlyTarget,
-        currentMonth: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+      settings = await Settings.create({ 
+        settingsType: 'global', 
+        monthlyTarget: monthlyTarget 
       });
     } else {
       settings.monthlyTarget = monthlyTarget;
+      await settings.save();
     }
     
-    await settings.save();
-    
-    res.json({
-      message: 'Monthly target updated successfully',
-      monthlyTarget: settings.monthlyTarget,
-      currentMonth: settings.currentMonth
-    });
+    res.json({ monthlyTarget: settings.monthlyTarget });
   } catch (error) {
-    console.error('Error updating monthly target:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Update monthly target error:', error);
+    res.status(500).json({ message: 'Server error updating monthly target' });
   }
 });
 

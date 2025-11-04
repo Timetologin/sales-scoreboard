@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { usersAPI } from '../services/api';
+import { usersAPI, settingsAPI } from '../services/api';
 import {
     Users,
     Plus,
@@ -111,7 +111,8 @@ const AdminPanel = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(null);
     const [showPasswordModal, setShowPasswordModal] = useState(null);
-    const [showTargetsModal, setShowTargetsModal] = useState(false); // ⭐ חדש!
+    const [showTargetsModal, setShowTargetsModal] = useState(false);
+    const [showMonthlyTargetModal, setShowMonthlyTargetModal] = useState(false);
     const [editingFTDs, setEditingFTDs] = useState(null);
     const [editingPlusOnes, setEditingPlusOnes] = useState(null);
     const [showAvatarModal, setShowAvatarModal] = useState(null);
@@ -329,18 +330,25 @@ const AdminPanel = () => {
                     transition={{ delay: 0.3 }}
                     className="flex flex-wrap gap-4 mb-8"
                 >
-                    {/* ⭐ כפתור Manage Targets - עכשיו פותח MODAL! */}
                     <button
                         onClick={() => setShowTargetsModal(true)}
                         className="btn-secondary flex items-center gap-2"
                     >
                         <Target className="w-5 h-5" />
-                        🎯 Manage Targets
+                        🎯 Manage Daily Targets
+                    </button>
+
+                    <button
+                        onClick={() => setShowMonthlyTargetModal(true)}
+                        className="btn-alpha flex items-center gap-2"
+                    >
+                        <Calendar className="w-5 h-5" />
+                        📅 Set Monthly Target
                     </button>
 
                     <button
                         onClick={() => setShowCreateModal(true)}
-                        className="btn-alpha flex items-center gap-2"
+                        className="btn-secondary flex items-center gap-2"
                     >
                         <PlusCircle className="w-5 h-5" />
                         ➕ Create New User
@@ -408,17 +416,11 @@ const AdminPanel = () => {
                                                         src={user.profilePicture}
                                                         alt={user.name}
                                                         className="w-12 h-12 rounded-full object-cover border-2 border-tiger-orange cursor-pointer hover:border-tiger-yellow transition-all"
-                                                        onClick={() => {
-                                                            console.log('Clicked avatar for user:', user.id);
-                                                            setShowAvatarModal(user.id);
-                                                        }}
+                                                        onClick={() => setShowAvatarModal(user.id)}
                                                     />
                                                     <div
                                                         className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 rounded-full transition-all flex items-center justify-center cursor-pointer"
-                                                        onClick={() => {
-                                                            console.log('Clicked overlay for user:', user.id);
-                                                            setShowAvatarModal(user.id);
-                                                        }}
+                                                        onClick={() => setShowAvatarModal(user.id)}
                                                     >
                                                         <Image className="w-5 h-5 text-white opacity-0 group-hover:opacity-100" />
                                                     </div>
@@ -771,18 +773,11 @@ const AdminPanel = () => {
                     userId={showAvatarModal}
                     currentAvatar={users.find((u) => u.id === showAvatarModal)?.profilePicture}
                     userName={users.find((u) => u.id === showAvatarModal)?.name}
-                    onClose={() => {
-                        console.log('Closing avatar modal');
-                        setShowAvatarModal(null);
-                    }}
-                    onSelect={(newAvatar) => {
-                        console.log('Selected new avatar:', newAvatar);
-                        handleUpdateAvatar(showAvatarModal, newAvatar);
-                    }}
+                    onClose={() => setShowAvatarModal(null)}
+                    onSelect={(newAvatar) => handleUpdateAvatar(showAvatarModal, newAvatar)}
                 />
             )}
 
-            {/* ⭐ NEW: Targets Modal */}
             {showTargetsModal && (
                 <TargetsModal
                     users={users}
@@ -795,17 +790,27 @@ const AdminPanel = () => {
                     onError={(msg) => showMessage('error', msg)}
                 />
             )}
+
+            {showMonthlyTargetModal && (
+                <MonthlyTargetModal
+                    onClose={() => setShowMonthlyTargetModal(false)}
+                    onSuccess={() => {
+                        setShowMonthlyTargetModal(false);
+                        showMessage('success', '✅ Monthly target updated successfully!');
+                    }}
+                    onError={(msg) => showMessage('error', msg)}
+                />
+            )}
         </div>
     );
 };
 
-// ⭐ NEW: Targets Modal Component
+// ⭐ Targets Modal Component
 const TargetsModal = ({ users, onClose, onSuccess, onError }) => {
     const [targets, setTargets] = useState({});
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        // Initialize targets from users
         const initialTargets = {};
         users.forEach((user) => {
             initialTargets[user.id] = user.dailyTarget || 0;
@@ -816,9 +821,8 @@ const TargetsModal = ({ users, onClose, onSuccess, onError }) => {
     const handleSaveTargets = async () => {
         setLoading(true);
         try {
-            // Update each user's target
             const promises = Object.entries(targets).map(([userId, target]) => {
-                return usersAPI.updateUserProfile(userId, { dailyTarget: parseInt(target) || 0 });
+                return usersAPI.updateDailyTarget(userId, parseInt(target) || 0);
             });
             await Promise.all(promises);
             onSuccess();
@@ -907,6 +911,107 @@ const TargetsModal = ({ users, onClose, onSuccess, onError }) => {
                         ❌ Cancel
                     </button>
                 </div>
+            </motion.div>
+        </div>
+    );
+};
+
+// ⭐ Monthly Target Modal Component
+const MonthlyTargetModal = ({ onClose, onSuccess, onError }) => {
+    const [monthlyTarget, setMonthlyTarget] = useState(0);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchCurrentTarget();
+    }, []);
+
+    const fetchCurrentTarget = async () => {
+        try {
+            const response = await settingsAPI.getMonthlyTarget();
+            setMonthlyTarget(response.data.monthlyTarget);
+        } catch (err) {
+            console.error('Failed to fetch monthly target:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSave = async () => {
+        setLoading(true);
+        try {
+            await settingsAPI.updateMonthlyTarget(parseInt(monthlyTarget) || 0);
+            onSuccess();
+        } catch (err) {
+            console.error('Failed to update monthly target:', err);
+            onError('❌ Failed to update monthly target');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="card-alpha max-w-md w-full p-6"
+            >
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 className="text-2xl font-bold alpha-text flex items-center gap-2">
+                            <Calendar className="w-8 h-8" />
+                            📅 Monthly Team Target
+                        </h2>
+                        <p className="text-sm text-orange-200 mt-1">
+                            Set the FTD goal for {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                        </p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="text-tiger-orange hover:text-tiger-yellow transition-colors p-2"
+                    >
+                        <X className="w-6 h-6" />
+                    </button>
+                </div>
+
+                {loading ? (
+                    <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-tiger-orange mx-auto"></div>
+                    </div>
+                ) : (
+                    <div className="space-y-6">
+                        <div className="p-4 bg-tiger-orange/20 rounded-lg border-2 border-tiger-orange">
+                            <label className="block text-sm font-bold text-tiger-yellow mb-3">
+                                🎯 Monthly Target (Total FTDs)
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                value={monthlyTarget}
+                                onChange={(e) => setMonthlyTarget(e.target.value)}
+                                className="w-full px-4 py-3 bg-gray-700 border-2 border-tiger-orange rounded-lg text-center text-white text-3xl font-bold focus:outline-none focus:border-tiger-yellow"
+                            />
+                            <p className="text-xs text-orange-200 mt-2 text-center">
+                                This is the total FTDs target for the entire team this month
+                            </p>
+                        </div>
+
+                        <div className="flex gap-3 pt-4">
+                            <button
+                                onClick={handleSave}
+                                disabled={loading}
+                                className="flex-1 btn-alpha flex items-center justify-center gap-2"
+                            >
+                                <Save className="w-5 h-5" />
+                                {loading ? '⏳ Saving...' : '💾 Save Target'}
+                            </button>
+                            <button onClick={onClose} className="flex-1 btn-secondary flex items-center justify-center gap-2">
+                                <X className="w-5 h-5" />
+                                ❌ Cancel
+                            </button>
+                        </div>
+                    </div>
+                )}
             </motion.div>
         </div>
     );
@@ -1078,7 +1183,6 @@ const AvatarModal = ({ userId, currentAvatar, userName, onClose, onSelect }) => 
             className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
             onClick={(e) => {
                 if (e.target === e.currentTarget) {
-                    console.log('Clicked outside modal');
                     onClose();
                 }
             }}
@@ -1097,17 +1201,13 @@ const AvatarModal = ({ userId, currentAvatar, userName, onClose, onSelect }) => 
                         </p>
                     </div>
                     <button
-                        onClick={() => {
-                            console.log('Clicked X button');
-                            onClose();
-                        }}
+                        onClick={onClose}
                         className="text-tiger-orange hover:text-tiger-yellow transition-colors p-2"
                     >
                         <X className="w-6 h-6" />
                     </button>
                 </div>
 
-                {/* Current Avatar */}
                 <div className="mb-6 text-center">
                     <p className="text-sm text-tiger-yellow mb-2 font-bold">Current Avatar:</p>
                     <img
@@ -1117,7 +1217,6 @@ const AvatarModal = ({ userId, currentAvatar, userName, onClose, onSelect }) => 
                     />
                 </div>
 
-                {/* Upload Section */}
                 <div className="mb-6 p-4 bg-tiger-orange/20 rounded-lg border-2 border-tiger-orange">
                     <h3 className="font-bold text-tiger-yellow mb-3">📤 Upload Custom Image</h3>
                     <label className="block">
@@ -1148,7 +1247,6 @@ const AvatarModal = ({ userId, currentAvatar, userName, onClose, onSelect }) => 
                     )}
                 </div>
 
-                {/* URL Section */}
                 <div className="mb-6 p-4 bg-tiger-orange/20 rounded-lg border-2 border-tiger-orange">
                     <h3 className="font-bold text-tiger-yellow mb-3">🔗 Use Image URL</h3>
                     <div className="flex gap-2">
@@ -1169,17 +1267,13 @@ const AvatarModal = ({ userId, currentAvatar, userName, onClose, onSelect }) => 
                     </div>
                 </div>
 
-                {/* Avatar Gallery */}
                 <div>
                     <h3 className="font-bold text-tiger-yellow mb-3">🎨 Choose from Gallery</h3>
                     <div className="grid grid-cols-4 gap-3">
                         {AVATAR_GALLERY.map((avatar, index) => (
                             <button
                                 key={index}
-                                onClick={() => {
-                                    console.log('Selected avatar from gallery:', avatar);
-                                    onSelect(avatar);
-                                }}
+                                onClick={() => onSelect(avatar)}
                                 className="group relative"
                             >
                                 <img
