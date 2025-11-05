@@ -73,7 +73,19 @@ const About = () => {
         >
           <div className="flex justify-center items-center gap-4 mb-6">
             <Flame className="w-16 h-16 text-tiger-yellow animate-pulse" />
-            <span className="text-8xl animate-roar">🐯</span>
+            {/* לוגו LEOS LEOPARDS במקום אימוג'י */}
+            <div className="relative">
+              <img 
+                src="/logo-192.png" 
+                alt="LEOS LEOPARDS" 
+                className="w-32 h-32 object-contain animate-roar"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextElementSibling.style.display = 'block';
+                }}
+              />
+              <span className="text-8xl animate-roar" style={{ display: 'none' }}>🐯</span>
+            </div>
             <Flame className="w-16 h-16 text-tiger-yellow animate-pulse" />
           </div>
           <h1 className="text-6xl font-extrabold text-white mb-6">
@@ -272,7 +284,17 @@ const About = () => {
         >
           <div className="flex justify-center mb-6">
             <div className="relative">
-              <span className="text-8xl animate-roar">🐯</span>
+              {/* לוגו LEOS LEOPARDS במקום אימוג'י */}
+              <img 
+                src="/logo-192.png" 
+                alt="LEOS LEOPARDS" 
+                className="w-32 h-32 object-contain animate-roar"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextElementSibling.style.display = 'block';
+                }}
+              />
+              <span className="text-8xl animate-roar" style={{ display: 'none' }}>🐯</span>
               <Crown className="absolute -top-4 -right-4 w-16 h-16 text-tiger-yellow animate-bounce tiger-eyes" />
             </div>
           </div>
