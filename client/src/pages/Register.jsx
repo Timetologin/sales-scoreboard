@@ -1,26 +1,26 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, AlertCircle, Flame, User } from 'lucide-react';
+import { User, Mail, Lock, AlertCircle, Flame, Crown } from 'lucide-react';
 
 const Register = () => {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  
-  const { register } = useAuth();
-  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError('');
   };
 
   const handleSubmit = async (e) => {
@@ -28,53 +28,51 @@ const Register = () => {
     setError('');
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Roars do not match! 🐯');
+      setError('Your roars don\'t match! Try again, tiger.');
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Your roar must be at least 6 characters strong! 💪');
+      setError('Your roar must be at least 6 characters fierce!');
       return;
     }
 
     setIsLoading(true);
 
-    const result = await register({
-      name: formData.name,
-      email: formData.email,
-      password: formData.password,
-    });
-    
-    setIsLoading(false);
-    
-    if (result.success) {
+    try {
+      await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
       navigate('/dashboard');
-    } else {
-      setError(result.error);
+    } catch (err) {
+      setError(
+        err.response?.data?.message || 
+        'Failed to join the pride. The territory might already be claimed!'
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-dark-bg flex items-center justify-center p-4 relative overflow-hidden">
       {/* Animated background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-tiger-orange rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-slow"></div>
-        <div className="absolute top-40 right-10 w-96 h-96 bg-tiger-yellow rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-slow" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute bottom-20 left-1/2 w-96 h-96 bg-tiger-darkOrange rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-slow" style={{ animationDelay: '2s' }}></div>
-      </div>
-
+      <div className="absolute inset-0 bg-tiger-stripes opacity-5"></div>
+      
       {/* Floating paw prints */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(8)].map((_, i) => (
+        {[...Array(6)].map((_, i) => (
           <div
             key={i}
-            className="paw-print"
+            className="absolute animate-float"
             style={{
-              left: `${5 + i * 12}%`,
-              animationDelay: `${i * 1.2}s`,
+              left: `${10 + i * 15}%`,
+              animationDelay: `${i * 1.5}s`,
             }}
           >
-            <span className="text-3xl opacity-50">🐾</span>
+            <span className="text-4xl opacity-60">🐾</span>
           </div>
         ))}
       </div>
@@ -84,13 +82,24 @@ const Register = () => {
           <div className="flex justify-center mb-6">
             <div className="relative">
               <div className="bg-tiger-gradient p-6 rounded-full shadow-[0_0_50px_rgba(255,140,0,0.6)] animate-roar">
-                <span className="text-6xl">🐯</span>
+                {/* לוגו LEOS LEOPARDS */}
+                <img 
+                  src="/logo-192.png" 
+                  alt="LEOS LEOPARDS" 
+                  className="w-16 h-16 object-contain"
+                  onError={(e) => {
+                    // Fallback לאימוג'י אם הלוגו לא נטען
+                    e.target.style.display = 'none';
+                    e.target.nextElementSibling.style.display = 'block';
+                  }}
+                />
+                <span className="text-6xl" style={{ display: 'none' }}>🐯</span>
               </div>
               <Flame className="absolute -top-2 -right-2 w-12 h-12 text-tiger-yellow animate-pulse tiger-eyes" />
             </div>
           </div>
           <h1 className="text-6xl font-extrabold mb-3 alpha-text animate-prowl">
-            Tiger's Pride
+            LEOS LEOPARDS
           </h1>
           <p className="text-tiger-orange font-bold text-xl flex items-center justify-center gap-2">
             <span>🔥</span>
@@ -98,7 +107,7 @@ const Register = () => {
             <span>🔥</span>
           </p>
           <p className="text-gray-400 mt-2 text-sm">
-            Prove you have what it takes to run with tigers
+            Prove you have what it takes to run with leopards
           </p>
         </div>
 
@@ -122,7 +131,7 @@ const Register = () => {
             <div>
               <label className="block text-sm font-bold text-tiger-orange mb-2 flex items-center gap-2">
                 <User className="w-4 h-4" />
-                Tiger Name
+                Hunter Name
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-tiger-orange w-5 h-5" />
@@ -132,7 +141,7 @@ const Register = () => {
                   value={formData.name}
                   onChange={handleChange}
                   className="input-field pl-10"
-                  placeholder="Fierce Tiger"
+                  placeholder="Your legendary name"
                   required
                 />
               </div>
@@ -151,7 +160,7 @@ const Register = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className="input-field pl-10"
-                  placeholder="tiger@pride.com"
+                  placeholder="hunter@leosleopards.com"
                   required
                 />
               </div>
@@ -210,7 +219,7 @@ const Register = () => {
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  <span>🐯</span>
+                  <span>🦁</span>
                   <span>Join Pride</span>
                   <span>🔥</span>
                 </span>
@@ -225,7 +234,7 @@ const Register = () => {
                 to="/login" 
                 className="text-tiger-orange hover:text-tiger-yellow font-bold transition-colors"
               >
-                Enter Territory 🐯
+                Enter Territory 🦁
               </Link>
             </p>
           </div>
