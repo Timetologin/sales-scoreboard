@@ -47,7 +47,7 @@ const Navigation = ({ children }) => {
       <header className="bg-gray-800 shadow-[0_0_30px_rgba(255,149,0,0.3)] sticky top-0 z-40 border-b-2 border-tiger-orange">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo - עכשיו עם לוגו אמיתי + fallback לאימוג'י */}
+            {/* Logo - עם לוגו אמיתי + fallback לאימוג'י */}
             <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition group">
               <div className="relative">
                 <div className="w-12 h-12 bg-tiger-gradient rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-[0_0_20px_rgba(255,149,0,0.6)] transition-all animate-prowl overflow-hidden">
