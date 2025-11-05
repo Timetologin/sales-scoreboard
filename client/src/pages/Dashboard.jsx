@@ -130,7 +130,7 @@ const Dashboard = () => {
               Tiger's Pride Leaderboard
             </h1>
             <p className="text-tiger-orange font-bold text-xl flex items-center justify-center gap-2">
-              Track your progress and compete with the team! 🔥 Higher is Better! 🚀
+              "Predators don’t wait for opportunities, they create them!" 🦁
             </p>
           </div>
 

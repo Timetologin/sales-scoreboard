@@ -47,11 +47,23 @@ const Navigation = ({ children }) => {
       <header className="bg-gray-800 shadow-[0_0_30px_rgba(255,149,0,0.3)] sticky top-0 z-40 border-b-2 border-tiger-orange">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            {/* Logo */}
+            {/* Logo - עכשיו עם לוגו אמיתי + fallback לאימוג'י */}
             <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition group">
               <div className="relative">
-                <div className="w-12 h-12 bg-tiger-gradient rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-[0_0_20px_rgba(255,149,0,0.6)] transition-all animate-prowl">
-                  <span className="text-3xl">🐯</span>
+                <div className="w-12 h-12 bg-tiger-gradient rounded-lg flex items-center justify-center shadow-lg group-hover:shadow-[0_0_20px_rgba(255,149,0,0.6)] transition-all animate-prowl overflow-hidden">
+                  {/* לוגו אמיתי - אם יש */}
+                  <img 
+                    src="/logo-192.png" 
+                    alt="LEOS LEOPARDS" 
+                    className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                    onError={(e) => {
+                      // Fallback לאימוג'י אם הלוגו לא נטען
+                      e.target.style.display = 'none';
+                      e.target.nextElementSibling.style.display = 'block';
+                    }}
+                  />
+                  {/* Fallback אימוג'י */}
+                  <span className="text-3xl" style={{ display: 'none' }}>🐯</span>
                 </div>
                 {isAdmin && user && (
                   <Crown className="absolute -top-2 -right-2 w-6 h-6 text-tiger-yellow animate-bounce tiger-eyes" />
@@ -59,7 +71,7 @@ const Navigation = ({ children }) => {
               </div>
               <div>
                 <span className="text-xl font-bold tiger-text hidden sm:block">
-                  Tiger's Pride
+                  LEOS LEOPARDS
                 </span>
                 <span className="text-xs text-tiger-orange font-semibold hidden sm:block">
                   Sales Territory
@@ -188,16 +200,26 @@ const Navigation = ({ children }) => {
       {/* Main Content */}
       <main className="flex-1">{children}</main>
 
-      {/* Footer */}
+      {/* Footer - עם לוגו מעודכן */}
       <footer className="bg-gray-800 text-orange-100 py-8 mt-auto border-t-2 border-tiger-orange shadow-[0_-10px_30px_rgba(255,149,0,0.2)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 bg-tiger-gradient rounded-lg flex items-center justify-center">
-                  <span className="text-2xl">🐯</span>
+                <div className="w-10 h-10 bg-tiger-gradient rounded-lg flex items-center justify-center overflow-hidden">
+                  {/* לוגו בfooter */}
+                  <img 
+                    src="/logo-192.png" 
+                    alt="LEOS LEOPARDS" 
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextElementSibling.style.display = 'block';
+                    }}
+                  />
+                  <span className="text-2xl" style={{ display: 'none' }}>🐯</span>
                 </div>
-                <span className="text-lg font-bold tiger-text">Tiger's Pride</span>
+                <span className="text-lg font-bold tiger-text">LEOS LEOPARDS</span>
               </div>
               <p className="text-gray-300 text-sm">
                 🔥 Unleash your inner tiger. Dominate the territory. Rule the pride.
@@ -229,13 +251,13 @@ const Navigation = ({ children }) => {
               <h4 className="font-bold mb-4 text-tiger-orange">Alpha Contact</h4>
               <ul className="space-y-2 text-sm text-gray-300">
                 <li className="flex items-center gap-2">
-                  <span>📧</span> alpha@tigerspride.com
+                  <span>📧</span> info@leosleopards.com
                 </li>
                 <li className="flex items-center gap-2">
-                  <span>📞</span> (555) TIGER-00
+                  <span>📞</span> (555) LEOPARD-1
                 </li>
                 <li className="flex items-center gap-2">
-                  <span>🏔️</span> Tiger Mountain HQ
+                  <span>🏔️</span> LEOS HQ
                 </li>
               </ul>
             </div>
@@ -243,12 +265,12 @@ const Navigation = ({ children }) => {
 
           <div className="border-t border-gray-700 mt-8 pt-8 text-center">
             <p className="text-sm text-gray-400 flex items-center justify-center gap-2">
-              <span>🐯</span>
-              <span>&copy; {new Date().getFullYear()} Tiger's Pride. All territories reserved.</span>
+              <span>🦁</span>
+              <span>&copy; {new Date().getFullYear()} LEOS LEOPARDS. All territories reserved.</span>
               <span>🔥</span>
             </p>
             <p className="text-xs text-tiger-orange mt-2 font-semibold">
-              "In the jungle, the mighty jungle, the tigers rule tonight" 🎵
+              "Excellence is not a skill, it's an attitude" 💪
             </p>
           </div>
         </div>
