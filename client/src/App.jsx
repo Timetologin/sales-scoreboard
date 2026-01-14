@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
@@ -13,92 +13,88 @@ import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
 import About from './pages/About';
 
+// Component to conditionally show background effects
 const ConditionalBackgroundEffects = () => {
   const location = useLocation();
   const showBackground = !['/login', '/register'].includes(location.pathname);
+  
   return showBackground ? <BackgroundEffects /> : null;
 };
 
 function App() {
   const [showPreloader, setShowPreloader] = useState(true);
-  const [appReady, setAppReady] = useState(false);
 
+  // הפרילודר פשוט מראה 3 שניות ואז נעלם
   const handlePreloaderComplete = () => {
     setShowPreloader(false);
-    setAppReady(true);
   };
 
-  return (
-    <>
-      {showPreloader && (
-        <Preloader 
-          onComplete={handlePreloaderComplete} 
-          minDisplayTime={4000}
-        />
-      )}
+  // Show preloader first
+  if (showPreloader) {
+    return <Preloader onComplete={handlePreloaderComplete} minDisplayTime={3000} />;
+  }
 
-      <div style={{ 
-        opacity: appReady ? 1 : 0, 
-        transition: 'opacity 0.5s ease-in-out',
-        visibility: showPreloader ? 'hidden' : 'visible'
-      }}>
-        <BrowserRouter>
-          <AuthProvider>
-            <ConditionalBackgroundEffects />
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <PrivateRoute>
-                    <Navigation>
-                      <Dashboard />
-                      <ChatWidget />
-                    </Navigation>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <PrivateRoute>
-                    <Navigation>
-                      <Profile />
-                      <ChatWidget />
-                    </Navigation>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/about"
-                element={
-                  <PrivateRoute>
-                    <Navigation>
-                      <About />
-                      <ChatWidget />
-                    </Navigation>
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <PrivateRoute adminOnly={true}>
-                    <Navigation>
-                      <AdminPanel />
-                      <ChatWidget />
-                    </Navigation>
-                  </PrivateRoute>
-                }
-              />
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </div>
-    </>
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <ConditionalBackgroundEffects />
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Navigation>
+                  <Dashboard />
+                  <ChatWidget />
+                </Navigation>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <Navigation>
+                  <Profile />
+                  <ChatWidget />
+                </Navigation>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <PrivateRoute>
+                <Navigation>
+                  <About />
+                  <ChatWidget />
+                </Navigation>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute adminOnly={true}>
+                <Navigation>
+                  <AdminPanel />
+                  <ChatWidget />
+                </Navigation>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Default Route */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
