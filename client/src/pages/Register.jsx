@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { User, Mail, Lock, AlertCircle, Flame, Crown } from 'lucide-react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+
+// הנמר הרץ - אותו אחד מהפרילודר
+const RUNNING_LEOPARD_URL = 'https://lottie.host/3b1dc1ed-c932-4128-81b2-a758aa308615/zFL5oESLeJ.lottie';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -61,6 +65,35 @@ const Register = () => {
       {/* Animated background */}
       <div className="absolute inset-0 bg-tiger-stripes opacity-5"></div>
       
+      {/* 🐆 נמר רץ בצד שמאל */}
+      <div className="fixed left-0 top-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 z-10 pointer-events-none">
+        <DotLottieReact
+          src={RUNNING_LEOPARD_URL}
+          loop
+          autoplay
+          style={{ 
+            width: '100%', 
+            height: '100%',
+            filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.4))'
+          }}
+        />
+      </div>
+
+      {/* 🐆 נמר רץ בצד ימין (מראה - הפוך) */}
+      <div className="fixed right-0 top-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 z-10 pointer-events-none"
+           style={{ transform: 'translateY(-50%) scaleX(-1)' }}>
+        <DotLottieReact
+          src={RUNNING_LEOPARD_URL}
+          loop
+          autoplay
+          style={{ 
+            width: '100%', 
+            height: '100%',
+            filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.4))'
+          }}
+        />
+      </div>
+
       {/* Floating paw prints */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(6)].map((_, i) => (
@@ -77,29 +110,18 @@ const Register = () => {
         ))}
       </div>
 
-      <div className="max-w-md w-full relative z-10">
+      <div className="max-w-md w-full relative z-20">
         <div className="text-center mb-8 animate-fadeIn">
           <div className="flex justify-center mb-6">
             <div className="relative">
               <div className="bg-tiger-gradient p-6 rounded-full shadow-[0_0_50px_rgba(255,140,0,0.6)] animate-roar">
-                {/* לוגו LEOS LEOPARDS */}
-                <img 
-                  src="/logo-192.png" 
-                  alt="LEOS LEOPARDS" 
-                  className="w-16 h-16 object-contain"
-                  onError={(e) => {
-                    // Fallback לאימוג'י אם הלוגו לא נטען
-                    e.target.style.display = 'none';
-                    e.target.nextElementSibling.style.display = 'block';
-                  }}
-                />
-                <span className="text-6xl" style={{ display: 'none' }}>🐯</span>
+                <Flame className="w-16 h-16 text-white" />
               </div>
-              <Flame className="absolute -top-2 -right-2 w-12 h-12 text-tiger-yellow animate-pulse tiger-eyes" />
+              <Crown className="absolute -top-2 -right-2 w-12 h-12 text-tiger-yellow animate-pulse tiger-eyes" />
             </div>
           </div>
-          <h1 className="text-6xl font-extrabold mb-3 alpha-text animate-prowl">
-            LEOS LEOPARDS
+          <h1 className="text-5xl font-extrabold mb-3 alpha-text animate-prowl">
+            Justin's LEOPARDS
           </h1>
           <p className="text-tiger-orange font-bold text-xl flex items-center justify-center gap-2">
             <span>🔥</span>
@@ -160,7 +182,7 @@ const Register = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className="input-field pl-10"
-                  placeholder="hunter@leosleopards.com"
+                  placeholder="hunter@JUSTIN'Sleopards.com"
                   required
                 />
               </div>

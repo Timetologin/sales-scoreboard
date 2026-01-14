@@ -54,7 +54,7 @@ const Navigation = ({ children }) => {
                   {/* לוגו אמיתי - אם יש */}
                   <img 
                     src="/logo-192.png" 
-                    alt="LEOS LEOPARDS" 
+                    alt="JUSTIN'S LEOPARDS" 
                     className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
                     onError={(e) => {
                       // Fallback לאימוג'י אם הלוגו לא נטען
@@ -71,7 +71,7 @@ const Navigation = ({ children }) => {
               </div>
               <div>
                 <span className="text-xl font-bold tiger-text hidden sm:block">
-                  LEOS LEOPARDS
+                  JUSTIN'S LEOPARDS
                 </span>
                 <span className="text-xs text-tiger-orange font-semibold hidden sm:block">
                   Sales Territory
@@ -210,7 +210,7 @@ const Navigation = ({ children }) => {
                   {/* לוגו בfooter */}
                   <img 
                     src="/logo-192.png" 
-                    alt="LEOS LEOPARDS" 
+                    alt="JUSTIN'S LEOPARDS" 
                     className="w-full h-full object-contain"
                     onError={(e) => {
                       e.target.style.display = 'none';
@@ -219,7 +219,7 @@ const Navigation = ({ children }) => {
                   />
                   <span className="text-2xl" style={{ display: 'none' }}>🐯</span>
                 </div>
-                <span className="text-lg font-bold tiger-text">LEOS LEOPARDS</span>
+                <span className="text-lg font-bold tiger-text">JUSTIN'S LEOPARDS</span>
               </div>
               <p className="text-gray-300 text-sm">
                 🔥 Unleash your inner tiger. Dominate the territory. Rule the pride.
@@ -251,13 +251,13 @@ const Navigation = ({ children }) => {
               <h4 className="font-bold mb-4 text-tiger-orange">Alpha Contact</h4>
               <ul className="space-y-2 text-sm text-gray-300">
                 <li className="flex items-center gap-2">
-                  <span>📧</span> info@leosleopards.com
+                  <span>📧</span> info@JUSTIN'Sleopards.com
                 </li>
                 <li className="flex items-center gap-2">
                   <span>📞</span> (555) LEOPARD-1
                 </li>
                 <li className="flex items-center gap-2">
-                  <span>🏔️</span> LEOS HQ
+                  <span>🏔️</span> JUSTIN'S HQ
                 </li>
               </ul>
             </div>
@@ -266,7 +266,7 @@ const Navigation = ({ children }) => {
           <div className="border-t border-gray-700 mt-8 pt-8 text-center">
             <p className="text-sm text-gray-400 flex items-center justify-center gap-2">
               <span>🦁</span>
-              <span>&copy; {new Date().getFullYear()} LEOS LEOPARDS. All territories reserved.</span>
+              <span>&copy; {new Date().getFullYear()} JUSTIN'S LEOPARDS. All territories reserved.</span>
               <span>🔥</span>
             </p>
             <p className="text-xs text-tiger-orange mt-2 font-semibold">

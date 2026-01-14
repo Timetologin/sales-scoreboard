@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
-const PRELOADER_URL = 'https://lottie.host/3b1dc1ed-c932-4128-81b2-a758aa308615/zFL5oESLeJ.lottie';
+// הנמר הרץ מהפרילודר
+const RUNNING_LEOPARD_URL = 'https://lottie.host/3b1dc1ed-c932-4128-81b2-a758aa308615/zFL5oESLeJ.lottie';
 
-const Preloader = ({ onComplete, minDisplayTime = 3000 }) => {
+const Preloader = ({ onComplete, minDisplayTime = 5000 }) => {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    // טיימר קבוע - לא משנה מה קורה, אחרי minDisplayTime נמשיך הלאה
+    // 5 שניות ואז נעלם
     const timer = setTimeout(() => {
       setFadeOut(true);
-      // Wait for fade animation to complete
       setTimeout(() => {
         onComplete();
       }, 500);
@@ -30,27 +30,26 @@ const Preloader = ({ onComplete, minDisplayTime = 3000 }) => {
     >
       {/* Animated background effects */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style={{ animationDelay: '1s' }}></div>
       </div>
 
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center">
-        {/* Lottie Animation with solid background */}
+        {/* Lottie Animation - הנמר הרץ */}
         <div 
-          className="w-72 h-72 mb-6 rounded-full flex items-center justify-center"
+          className="w-80 h-80 mb-4"
           style={{
-            background: 'radial-gradient(circle, rgba(255,149,0,0.3) 0%, transparent 70%)',
+            filter: 'drop-shadow(0 0 30px rgba(255, 149, 0, 0.6))'
           }}
         >
           <DotLottieReact
-            src={PRELOADER_URL}
+            src={RUNNING_LEOPARD_URL}
             loop
             autoplay
             style={{ 
-              width: '280px', 
-              height: '280px',
-              filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.5))'
+              width: '100%', 
+              height: '100%',
             }}
           />
         </div>

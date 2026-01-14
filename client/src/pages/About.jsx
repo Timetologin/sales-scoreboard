@@ -73,11 +73,11 @@ const About = () => {
         >
           <div className="flex justify-center items-center gap-4 mb-6">
             <Flame className="w-16 h-16 text-tiger-yellow animate-pulse" />
-            {/* לוגו LEOS LEOPARDS במקום אימוג'י */}
+            {/* לוגו JUSTIN'S LEOPARDS במקום אימוג'י */}
             <div className="relative">
               <img 
                 src="/logo-192.png" 
-                alt="LEOS LEOPARDS" 
+                alt="JUSTIN'S LEOPARDS" 
                 className="w-32 h-32 object-contain animate-roar"
                 onError={(e) => {
                   e.target.style.display = 'none';
@@ -284,10 +284,10 @@ const About = () => {
         >
           <div className="flex justify-center mb-6">
             <div className="relative">
-              {/* לוגו LEOS LEOPARDS במקום אימוג'י */}
+              {/* לוגו JUSTIN'S LEOPARDS במקום אימוג'י */}
               <img 
                 src="/logo-192.png" 
-                alt="LEOS LEOPARDS" 
+                alt="JUSTIN'S LEOPARDS" 
                 className="w-32 h-32 object-contain animate-roar"
                 onError={(e) => {
                   e.target.style.display = 'none';

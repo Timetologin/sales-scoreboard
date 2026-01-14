@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { usersAPI, settingsAPI } from '../services/api';
 import { Trophy, Crown, Medal, TrendingUp, Users, Target, Award, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+
+// הנמר החמוד שהיה בLogin - עכשיו בHero
+const CUTE_TIGER_URL = 'https://lottie.host/719cc542-fb72-4649-86f4-c04fbc22d58b/vjKvPxrrsj.lottie';
 
 const Dashboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -69,7 +73,7 @@ const Dashboard = () => {
   const getPodiumHeight = (rank) => {
     switch (rank) {
       case 1:
-        return 'min-h-[420px]'; // Increased for Daily Target info
+        return 'min-h-[420px]';
       case 2:
         return 'min-h-[380px]';
       case 3:
@@ -118,19 +122,35 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header Stats */}
+        {/* 🐯 Hero Section with Cute Tiger */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
           <div className="text-center mb-6">
+            {/* Cute Tiger Animation */}
+            <div className="flex justify-center mb-4">
+              <div className="w-40 h-40 md:w-48 md:h-48">
+                <DotLottieReact
+                  src={CUTE_TIGER_URL}
+                  loop
+                  autoplay
+                  style={{ 
+                    width: '100%', 
+                    height: '100%',
+                    filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.5))'
+                  }}
+                />
+              </div>
+            </div>
+            
             <h1 className="text-5xl font-extrabold alpha-text mb-2 flex items-center justify-center gap-3">
               <Trophy className="w-12 h-12 text-tiger-yellow" />
               Tiger's Pride Leaderboard
             </h1>
             <p className="text-tiger-orange font-bold text-xl flex items-center justify-center gap-2">
-              "Predators don’t wait for opportunities, they create them!" 🦁
+              "Predators don't wait for opportunities, they create them!" 🦁
             </p>
           </div>
 
@@ -229,7 +249,7 @@ const Dashboard = () => {
           </div>
         </motion.div>
 
-        {/* TOP 3 PODIUM - ENHANCED WITH DAILY TARGETS */}
+        {/* TOP 3 PODIUM */}
         {topThree.length > 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -331,7 +351,7 @@ const Dashboard = () => {
                       <p className="text-sm text-tiger-orange font-bold">FTD's</p>
                     </div>
 
-                    {/* Daily Target Info - NEW! */}
+                    {/* Daily Target Info */}
                     {user.dailyTarget && user.dailyTarget > 0 && (
                       <div className="mb-3 p-2 bg-tiger-orange/20 rounded-lg border border-tiger-orange/50">
                         <div className="flex items-center justify-center gap-2 mb-1">
@@ -386,7 +406,7 @@ const Dashboard = () => {
           </motion.div>
         )}
 
-        {/* Rest of Leaderboard - ENHANCED WITH DAILY TARGETS */}
+        {/* Rest of Leaderboard */}
         {error && (
           <div className="mb-6 p-4 bg-red-900/30 border-2 border-red-500 rounded-lg">
             <p className="text-red-300 font-bold">{error}</p>
@@ -444,7 +464,6 @@ const Dashboard = () => {
                           {user.plusOnes || 0} +1's
                         </span>
                       </div>
-                      {/* Daily Target in List - NEW! */}
                       {user.dailyTarget && user.dailyTarget > 0 && (
                         <div className="flex items-center gap-1">
                           <Target className="w-4 h-4 text-green-400" />
@@ -455,7 +474,7 @@ const Dashboard = () => {
                       )}
                     </div>
 
-                    {/* Progress Bar - Shows Daily Target if exists, otherwise overall progress */}
+                    {/* Progress Bar */}
                     <div className="mt-2 bg-dark-bg rounded-full h-3 overflow-hidden border border-tiger-orange">
                       {user.dailyTarget && user.dailyTarget > 0 ? (
                         <motion.div
