@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, AlertCircle, Flame, Crown } from 'lucide-react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { LOTTIE_URLS } from '../components/LottieAnimation';
+import { InlineSpinner } from '../components/LoadingSpinner';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -30,14 +33,12 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      {/* Animated background tiger stripes */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-96 h-96 bg-tiger-orange rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-slow"></div>
         <div className="absolute top-40 right-10 w-96 h-96 bg-tiger-yellow rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-slow" style={{ animationDelay: '1s' }}></div>
         <div className="absolute bottom-20 left-1/2 w-96 h-96 bg-tiger-darkOrange rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-slow" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      {/* Floating paw prints */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(6)].map((_, i) => (
           <div
@@ -55,16 +56,19 @@ const Login = () => {
 
       <div className="max-w-md w-full relative z-10">
         <div className="text-center mb-8 animate-fadeIn">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="bg-tiger-gradient p-6 rounded-full shadow-[0_0_50px_rgba(255,140,0,0.6)] animate-roar">
-                <span className="text-6xl">🐯</span>
-              </div>
-              <Flame className="absolute -top-2 -right-2 w-12 h-12 text-tiger-yellow animate-pulse tiger-eyes" />
+          <div className="flex justify-center mb-4">
+            <div className="w-48 h-48 md:w-56 md:h-56">
+              <DotLottieReact
+                src={LOTTIE_URLS.leopard}
+                loop={true}
+                autoplay={true}
+                style={{ width: '100%', height: '100%' }}
+              />
             </div>
           </div>
-          <h1 className="text-6xl font-extrabold mb-3 alpha-text animate-prowl">
-            Tiger's Pride
+          
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-3 alpha-text animate-prowl">
+            Justin's LEOPARDS
           </h1>
           <p className="text-tiger-orange font-bold text-xl flex items-center justify-center gap-2">
             <span>🔥</span>
@@ -136,9 +140,8 @@ const Login = () => {
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-3">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-dark-bg"></div>
+                  <InlineSpinner size={24} />
                   <span>Entering Territory...</span>
-                  <span>🐾</span>
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
