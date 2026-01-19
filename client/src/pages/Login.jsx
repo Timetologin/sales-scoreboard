@@ -16,7 +16,7 @@ const Login = () => {
 
   useEffect(() => {
     // Load Cute Tiger animation
-    fetch('/Cute Tiger.json')
+    fetch('/Tiger.json')
       .then(res => res.json())
       .then(data => setCuteTigerAnim(data))
       .catch(err => console.error('Failed to load Cute Tiger animation:', err));
