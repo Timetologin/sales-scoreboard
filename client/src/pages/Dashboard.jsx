@@ -4,37 +4,20 @@ import { Trophy, Crown, Medal, TrendingUp, Users, Target, Award, Calendar } from
 import { motion } from 'framer-motion';
 import Lottie from 'lottie-react';
 
-// Import local Lottie JSON files - will be loaded from public folder
 const Dashboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [monthlyTarget, setMonthlyTarget] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
-  // Lottie animation data
-  const [walkingAnim, setWalkingAnim] = useState(null);
+  // Lottie animations
   const [cuteTigerAnim, setCuteTigerAnim] = useState(null);
-  const [sideTigerAnim, setSideTigerAnim] = useState(null);
+  const [walkingAnim, setWalkingAnim] = useState(null);
 
   useEffect(() => {
-    // Load Lottie animations
-    fetch('/Walking.json')
-      .then(res => res.json())
-      .then(data => setWalkingAnim(data))
-      .catch(err => console.error('Failed to load Walking animation:', err));
-    
-    fetch('/Cute_Tiger.json')
-      .then(res => res.json())
-      .then(data => setCuteTigerAnim(data))
-      .catch(err => console.error('Failed to load Cute Tiger animation:', err));
-    
-    fetch('/Tiger.json')
-      .then(res => res.json())
-      .then(data => setSideTigerAnim(data))
-      .catch(err => console.error('Failed to load Tiger animation:', err));
-
     fetchLeaderboard();
     fetchMonthlyTarget();
+    loadAnimations();
     
     // Auto-refresh every 30 seconds
     const interval = setInterval(() => {
@@ -44,19 +27,30 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const loadAnimations = async () => {
+    try {
+      // Load Cute Tiger for Hero
+      const cuteTigerRes = await fetch('/Cute_Tiger.json');
+      const cuteTigerData = await cuteTigerRes.json();
+      setCuteTigerAnim(cuteTigerData);
+      
+      // Load Walking tiger for progress bar
+      const walkingRes = await fetch('/Walking.json');
+      const walkingData = await walkingRes.json();
+      setWalkingAnim(walkingData);
+    } catch (err) {
+      console.error('Failed to load animations:', err);
+    }
+  };
+
   const fetchLeaderboard = async () => {
     try {
       const response = await usersAPI.getLeaderboard();
-      
-      // Sort from highest to lowest
       const sortedData = response.data.sort((a, b) => b.ftds - a.ftds);
-      
-      // Add ranks
       const rankedData = sortedData.map((user, index) => ({
         ...user,
         rank: index + 1
       }));
-      
       setLeaderboard(rankedData);
       setError('');
     } catch (err) {
@@ -76,50 +70,27 @@ const Dashboard = () => {
     }
   };
 
-  const getRankIcon = (rank) => {
-    switch (rank) {
-      case 1:
-        return <Crown className="w-8 h-8 text-yellow-400" />;
-      case 2:
-        return <Medal className="w-8 h-8 text-gray-400" />;
-      case 3:
-        return <Medal className="w-8 h-8 text-orange-600" />;
-      default:
-        return null;
-    }
-  };
-
   const getPodiumHeight = (rank) => {
     switch (rank) {
-      case 1:
-        return 'min-h-[420px]';
-      case 2:
-        return 'min-h-[380px]';
-      case 3:
-        return 'min-h-[360px]';
-      default:
-        return 'min-h-[300px]';
+      case 1: return 'min-h-[420px]';
+      case 2: return 'min-h-[380px]';
+      case 3: return 'min-h-[360px]';
+      default: return 'min-h-[300px]';
     }
   };
 
   const getPodiumOrder = (rank) => {
     switch (rank) {
-      case 1:
-        return 'order-2'; // Center
-      case 2:
-        return 'order-1'; // Left
-      case 3:
-        return 'order-3'; // Right
-      default:
-        return '';
+      case 1: return 'order-2';
+      case 2: return 'order-1';
+      case 3: return 'order-3';
+      default: return '';
     }
   };
 
   const totalFTDs = leaderboard.reduce((sum, user) => sum + user.ftds, 0);
   const totalPlusOnes = leaderboard.reduce((sum, user) => sum + (user.plusOnes || 0), 0);
   const maxFTDs = leaderboard[0]?.ftds || 0;
-  
-  // Monthly target progress
   const monthlyProgress = monthlyTarget > 0 ? (totalFTDs / monthlyTarget) * 100 : 0;
   const monthlyAchieved = totalFTDs >= monthlyTarget && monthlyTarget > 0;
 
@@ -134,43 +105,20 @@ const Dashboard = () => {
     );
   }
 
-  // TOP 3 Players
   const topThree = leaderboard.slice(0, 3);
   const restOfPlayers = leaderboard.slice(3);
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 relative">
-      {/* 🐯 Fixed Tiger on Left Side - Follows Scroll */}
-      {sideTigerAnim && (
-        <div className="fixed left-0 top-1/2 -translate-y-1/2 z-40 pointer-events-none hidden lg:block">
-          <motion.div
-            initial={{ x: -100, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="w-24 h-24"
-            style={{
-              filter: 'drop-shadow(0 0 15px rgba(255, 149, 0, 0.5))'
-            }}
-          >
-            <Lottie
-              animationData={sideTigerAnim}
-              loop={true}
-              autoplay={true}
-              style={{ width: '100%', height: '100%' }}
-            />
-          </motion.div>
-        </div>
-      )}
-
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* 🐯 Hero Section with Cute Tiger */}
+        {/* 🐯 Hero Section with Cute Tiger Lottie */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
           <div className="text-center mb-6">
-            {/* Cute Tiger Animation */}
+            {/* Cute Tiger Lottie Animation - FROM LOCAL FILE */}
             <div className="flex justify-center mb-4">
               <div className="w-40 h-40 md:w-48 md:h-48">
                 {cuteTigerAnim ? (
@@ -185,9 +133,7 @@ const Dashboard = () => {
                     }}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-8xl animate-bounce">🐯</span>
-                  </div>
+                  <div className="animate-pulse bg-tiger-orange/20 rounded-full w-full h-full"></div>
                 )}
               </div>
             </div>
@@ -201,12 +147,12 @@ const Dashboard = () => {
             </p>
           </div>
 
-          {/* Monthly Target Card with Walking Tiger */}
+          {/* Monthly Target Card */}
           {monthlyTarget > 0 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mb-6 card-alpha prowl-effect relative overflow-hidden"
+              className="mb-6 card-alpha prowl-effect"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -224,30 +170,29 @@ const Dashboard = () => {
                 </div>
               </div>
               
-              {/* Progress Bar Container with Walking Tiger */}
-              <div className="relative">
-                {/* Walking Tiger Animation - Above the Progress Bar */}
-                {walkingAnim && (
-                  <motion.div
-                    initial={{ x: '-10%' }}
-                    animate={{ x: `${Math.min(monthlyProgress, 95)}%` }}
-                    transition={{ duration: 2, ease: "easeOut" }}
-                    className="absolute -top-16 left-0 w-20 h-20 z-10"
-                    style={{
-                      filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))'
-                    }}
-                  >
+              {/* Walking Tiger Animation - Centered above progress bar, BIGGER */}
+              <div className="flex justify-center mb-1">
+                <div className="w-32 h-32">
+                  {walkingAnim ? (
                     <Lottie
                       animationData={walkingAnim}
                       loop={true}
                       autoplay={true}
-                      style={{ width: '100%', height: '100%' }}
+                      style={{ 
+                        width: '100%', 
+                        height: '100%',
+                        filter: 'drop-shadow(0 0 15px rgba(255, 149, 0, 0.6))'
+                      }}
                     />
-                  </motion.div>
-                )}
-                
-                {/* Progress Bar */}
-                <div className="h-8 bg-gray-800 rounded-full overflow-hidden border-2 border-tiger-orange mt-8">
+                  ) : (
+                    <div className="animate-pulse bg-tiger-orange/20 rounded-full w-full h-full"></div>
+                  )}
+                </div>
+              </div>
+
+              {/* Progress Bar - ORIGINAL STRUCTURE with percentage INSIDE */}
+              <div className="relative">
+                <div className="h-8 bg-gray-800 rounded-full overflow-hidden border-2 border-tiger-orange">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.min(monthlyProgress, 100)}%` }}
@@ -255,11 +200,12 @@ const Dashboard = () => {
                     className={`h-full ${
                       monthlyAchieved 
                         ? 'bg-gradient-to-r from-green-400 via-green-500 to-green-600' 
-                        : 'bg-gradient-to-r from-tiger-orange to-tiger-yellow'
+                        : 'bg-tiger-gradient'
                     }`}
                   />
                 </div>
-                <div className="absolute inset-0 flex items-center justify-center mt-8">
+                {/* Percentage INSIDE the bar with absolute positioning */}
+                <div className="absolute inset-0 flex items-center justify-center">
                   <span className="text-white font-bold text-sm drop-shadow-lg">
                     {monthlyProgress.toFixed(1)}% Complete
                   </span>
@@ -291,6 +237,7 @@ const Dashboard = () => {
             </motion.div>
           )}
 
+          {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="card-alpha text-center prowl-effect">
               <Users className="w-10 h-10 text-tiger-orange mx-auto mb-2" />
@@ -348,11 +295,7 @@ const Dashboard = () => {
                       ? 'linear-gradient(135deg, rgba(192, 192, 192, 0.2), rgba(169, 169, 169, 0.1))'
                       : 'linear-gradient(135deg, rgba(205, 127, 50, 0.2), rgba(184, 115, 51, 0.1))',
                     borderWidth: user.rank === 1 ? '4px' : '3px',
-                    borderColor: user.rank === 1 
-                      ? '#FFD700' 
-                      : user.rank === 2 
-                      ? '#C0C0C0' 
-                      : '#CD7F32',
+                    borderColor: user.rank === 1 ? '#FFD700' : user.rank === 2 ? '#C0C0C0' : '#CD7F32',
                   }}
                 >
                   {/* Rank Badge */}
@@ -369,7 +312,6 @@ const Dashboard = () => {
 
                   {/* Top Section */}
                   <div className="pt-4">
-                    {/* Medal/Crown */}
                     <div className="text-center mb-3">
                       {user.rank === 1 && (
                         <motion.div
@@ -383,7 +325,6 @@ const Dashboard = () => {
                       {user.rank === 3 && <Medal className="w-16 h-16 text-orange-600 mx-auto drop-shadow-lg" />}
                     </div>
 
-                    {/* Profile Picture */}
                     <div className="flex justify-center mb-3">
                       <img
                         src={user.profilePicture}
@@ -394,22 +335,19 @@ const Dashboard = () => {
                       />
                     </div>
 
-                    {/* User Name */}
                     <h3 className={`text-center font-extrabold px-2 leading-tight mb-1
                       ${user.rank === 1 ? 'text-xl text-yellow-300' : 'text-lg text-tiger-yellow'}
                     `}>
                       {user.name}
                     </h3>
 
-                    {/* Email */}
                     <p className="text-center text-xs text-orange-200 px-2 mb-3 truncate">
                       {user.email}
                     </p>
                   </div>
 
-                  {/* Bottom Section - Stats */}
+                  {/* Bottom Section */}
                   <div className="pb-4 px-3">
-                    {/* FTD Count - BIG */}
                     <div className="text-center mb-3">
                       <p className={`font-extrabold leading-none mb-1
                         ${user.rank === 1 ? 'text-5xl text-yellow-400' : 'text-4xl alpha-text'}
@@ -419,7 +357,6 @@ const Dashboard = () => {
                       <p className="text-sm text-tiger-orange font-bold">FTD's</p>
                     </div>
 
-                    {/* Daily Target Info */}
                     {user.dailyTarget && user.dailyTarget > 0 && (
                       <div className="mb-3 p-2 bg-tiger-orange/20 rounded-lg border border-tiger-orange/50">
                         <div className="flex items-center justify-center gap-2 mb-1">
@@ -430,41 +367,31 @@ const Dashboard = () => {
                         </div>
                         <div className="w-full bg-gray-700 rounded-full h-2">
                           <div
-                            className="bg-gradient-to-r from-tiger-orange to-tiger-yellow h-2 rounded-full transition-all"
-                            style={{
-                              width: `${Math.min(((user.todayFTDs || 0) / user.dailyTarget) * 100, 100)}%`,
-                            }}
+                            className="bg-tiger-gradient h-2 rounded-full transition-all"
+                            style={{ width: `${Math.min(((user.todayFTDs || 0) / user.dailyTarget) * 100, 100)}%` }}
                           ></div>
                         </div>
                         <p className="text-xs text-center text-orange-200 mt-1">
                           Today: {user.todayFTDs || 0} FTDs
                         </p>
                         {user.todayFTDs >= user.dailyTarget && (
-                          <p className="text-xs text-center text-green-400 font-bold mt-1">
-                            ✅ Daily Goal!
-                          </p>
+                          <p className="text-xs text-center text-green-400 font-bold mt-1">✅ Daily Goal!</p>
                         )}
                       </div>
                     )}
 
-                    {/* Plus Ones */}
                     <div className="flex justify-center items-center gap-2 mb-2">
                       <Award className="w-5 h-5 text-cyan-400" />
-                      <span className="text-cyan-300 font-bold text-sm">
-                        {user.plusOnes || 0} +1's
-                      </span>
+                      <span className="text-cyan-300 font-bold text-sm">{user.plusOnes || 0} +1's</span>
                     </div>
 
-                    {/* Celebration Text for Winner */}
                     {user.rank === 1 && (
                       <motion.div
                         animate={{ scale: [1, 1.05, 1] }}
                         transition={{ duration: 2, repeat: Infinity }}
                         className="text-center px-2"
                       >
-                        <p className="text-yellow-300 font-extrabold text-sm mb-1">
-                          👑 THE CHAMPION! 👑
-                        </p>
+                        <p className="text-yellow-300 font-extrabold text-sm mb-1">👑 THE CHAMPION! 👑</p>
                       </motion.div>
                     )}
                   </div>
@@ -474,18 +401,16 @@ const Dashboard = () => {
           </motion.div>
         )}
 
-        {/* Rest of Leaderboard */}
         {error && (
           <div className="mb-6 p-4 bg-red-900/30 border-2 border-red-500 rounded-lg">
             <p className="text-red-300 font-bold">{error}</p>
           </div>
         )}
 
+        {/* Rest of Leaderboard */}
         {restOfPlayers.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-3xl font-extrabold text-center alpha-text mb-6">
-              📊 Full Leaderboard
-            </h2>
+            <h2 className="text-3xl font-extrabold text-center alpha-text mb-6">📊 Full Leaderboard</h2>
             <div className="space-y-3">
               {restOfPlayers.map((user, index) => (
                 <motion.div
@@ -495,90 +420,45 @@ const Dashboard = () => {
                   transition={{ delay: index * 0.05 }}
                   className="card-alpha flex items-center gap-4 prowl-effect"
                 >
-                  {/* Rank Badge */}
                   <div className="flex-shrink-0">
-                    <div className="tiger-badge">
-                      #{user.rank}
-                    </div>
+                    <div className="tiger-badge">#{user.rank}</div>
                   </div>
 
-                  {/* Profile Picture */}
                   <img
                     src={user.profilePicture}
                     alt={user.name}
                     className="w-20 h-20 rounded-full object-cover border-4 border-tiger-orange shadow-lg"
                   />
 
-                  {/* User Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-xl font-extrabold text-tiger-yellow truncate">
-                        {user.name}
-                      </h3>
-                    </div>
+                    <h3 className="text-xl font-extrabold text-tiger-yellow truncate">{user.name}</h3>
                     <p className="text-sm text-orange-200 truncate">{user.email}</p>
                     
-                    {/* Stats Row */}
                     <div className="flex gap-4 mt-2">
                       <div className="flex items-center gap-1">
                         <Target className="w-4 h-4 text-tiger-yellow" />
-                        <span className="text-xs text-tiger-orange font-bold">
-                          {user.ftds} FTD's
-                        </span>
+                        <span className="text-xs text-tiger-orange font-bold">{user.ftds} FTD's</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Award className="w-4 h-4 text-cyan-400" />
-                        <span className="text-xs text-cyan-300 font-bold">
-                          {user.plusOnes || 0} +1's
-                        </span>
+                        <span className="text-xs text-cyan-300 font-bold">{user.plusOnes || 0} +1's</span>
                       </div>
-                      {user.dailyTarget && user.dailyTarget > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Target className="w-4 h-4 text-green-400" />
-                          <span className="text-xs text-green-300 font-bold">
-                            Today: {user.todayFTDs || 0}/{user.dailyTarget}
-                          </span>
-                        </div>
-                      )}
                     </div>
 
-                    {/* Progress Bar */}
                     <div className="mt-2 bg-dark-bg rounded-full h-3 overflow-hidden border border-tiger-orange">
-                      {user.dailyTarget && user.dailyTarget > 0 ? (
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ 
-                            width: `${Math.min(((user.todayFTDs || 0) / user.dailyTarget) * 100, 100)}%`
-                          }}
-                          transition={{ duration: 1, delay: index * 0.05 }}
-                          className={`h-full ${
-                            user.todayFTDs >= user.dailyTarget 
-                              ? 'bg-gradient-to-r from-green-400 to-green-600'
-                              : 'bg-gradient-to-r from-tiger-orange to-tiger-yellow'
-                          }`}
-                        />
-                      ) : (
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ 
-                            width: maxFTDs > 0 ? `${(user.ftds / maxFTDs) * 100}%` : '0%'
-                          }}
-                          transition={{ duration: 1, delay: index * 0.05 }}
-                          className="h-full bg-gradient-to-r from-tiger-orange to-tiger-yellow"
-                        />
-                      )}
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: maxFTDs > 0 ? `${(user.ftds / maxFTDs) * 100}%` : '0%' }}
+                        transition={{ duration: 1, delay: index * 0.05 }}
+                        className="h-full bg-tiger-gradient"
+                      />
                     </div>
                   </div>
 
-                  {/* FTDs Count */}
                   <div className="text-right flex-shrink-0">
-                    <p className="text-3xl font-extrabold alpha-text">
-                      {user.ftds}
-                    </p>
+                    <p className="text-3xl font-extrabold alpha-text">{user.ftds}</p>
                     <p className="text-xs text-tiger-orange font-bold">
-                      {maxFTDs - user.ftds > 0 
-                        ? `-${maxFTDs - user.ftds} from leader` 
-                        : '👑 Leader'}
+                      {maxFTDs - user.ftds > 0 ? `-${maxFTDs - user.ftds} from leader` : '👑 Leader'}
                     </p>
                   </div>
                 </motion.div>

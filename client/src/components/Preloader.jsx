@@ -3,18 +3,22 @@ import Lottie from 'lottie-react';
 
 const Preloader = ({ onComplete, minDisplayTime = 3000 }) => {
   const [fadeOut, setFadeOut] = useState(false);
-  const [walkingAnim, setWalkingAnim] = useState(null);
+  const [cuteTigerAnim, setCuteTigerAnim] = useState(null);
 
   useEffect(() => {
-    // Load Walking animation for preloader
-    fetch('/Walking.json')
-      .then(res => res.json())
-      .then(data => setWalkingAnim(data))
-      .catch(err => console.error('Failed to load Walking animation:', err));
-  }, []);
+    // Load Cute Tiger animation
+    const loadAnimation = async () => {
+      try {
+        const res = await fetch('/Cute_Tiger.json');
+        const data = await res.json();
+        setCuteTigerAnim(data);
+      } catch (err) {
+        console.error('Failed to load animation:', err);
+      }
+    };
+    loadAnimation();
 
-  useEffect(() => {
-    // Display for minDisplayTime then fade out
+    // Timer for preloader
     const timer = setTimeout(() => {
       setFadeOut(true);
       setTimeout(() => {
@@ -42,16 +46,16 @@ const Preloader = ({ onComplete, minDisplayTime = 3000 }) => {
 
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center">
-        {/* Lottie Animation - Walking Leopard */}
+        {/* Cute Tiger Lottie Animation */}
         <div 
-          className="w-80 h-80 mb-4"
+          className="w-64 h-64 md:w-80 md:h-80 mb-4"
           style={{
             filter: 'drop-shadow(0 0 30px rgba(255, 149, 0, 0.6))'
           }}
         >
-          {walkingAnim ? (
+          {cuteTigerAnim ? (
             <Lottie
-              animationData={walkingAnim}
+              animationData={cuteTigerAnim}
               loop={true}
               autoplay={true}
               style={{ 
@@ -61,7 +65,7 @@ const Preloader = ({ onComplete, minDisplayTime = 3000 }) => {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <span className="text-9xl animate-bounce">🐆</span>
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-orange-500"></div>
             </div>
           )}
         </div>
