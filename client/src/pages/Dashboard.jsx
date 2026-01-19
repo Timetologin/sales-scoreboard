@@ -30,7 +30,7 @@ const Dashboard = () => {
   const loadAnimations = async () => {
     try {
       // Load Cute Tiger for Hero
-      const cuteTigerRes = await fetch('/Cute_Tiger.json');
+      const cuteTigerRes = await fetch('/Cute Tiger.json');
       const cuteTigerData = await cuteTigerRes.json();
       setCuteTigerAnim(cuteTigerData);
       

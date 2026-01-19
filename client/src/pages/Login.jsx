@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, AlertCircle, Flame, Crown } from 'lucide-react';
+import { Mail, Lock, AlertCircle, Crown } from 'lucide-react';
 import Lottie from 'lottie-react';
 
 const Login = () => {
@@ -9,17 +9,17 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [walkingAnim, setWalkingAnim] = useState(null);
+  const [cuteTigerAnim, setCuteTigerAnim] = useState(null);
   
   const { login } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Load Walking animation
-    fetch('/Walking.json')
+    // Load Cute Tiger animation
+    fetch('/Cute Tiger.json')
       .then(res => res.json())
-      .then(data => setWalkingAnim(data))
-      .catch(err => console.error('Failed to load Walking animation:', err));
+      .then(data => setCuteTigerAnim(data))
+      .catch(err => console.error('Failed to load Cute Tiger animation:', err));
   }, []);
 
   const handleSubmit = async (e) => {
@@ -47,11 +47,11 @@ const Login = () => {
         <div className="absolute bottom-20 left-1/2 w-96 h-96 bg-tiger-darkOrange rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-slow" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      {/* 🐆 Walking Leopard on Left Side */}
-      {walkingAnim && (
-        <div className="fixed left-0 top-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 z-10 pointer-events-none">
+      {/* 🐆 Cute Tiger on Left Side */}
+      {cuteTigerAnim && (
+        <div className="fixed left-4 top-1/2 -translate-y-1/2 w-40 h-40 md:w-56 md:h-56 z-10 pointer-events-none">
           <Lottie
-            animationData={walkingAnim}
+            animationData={cuteTigerAnim}
             loop={true}
             autoplay={true}
             style={{ 
@@ -63,14 +63,14 @@ const Login = () => {
         </div>
       )}
 
-      {/* 🐆 Walking Leopard on Right Side (Mirrored) */}
-      {walkingAnim && (
+      {/* 🐆 Cute Tiger on Right Side (Mirrored) */}
+      {cuteTigerAnim && (
         <div 
-          className="fixed right-0 top-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 z-10 pointer-events-none"
+          className="fixed right-4 top-1/2 -translate-y-1/2 w-40 h-40 md:w-56 md:h-56 z-10 pointer-events-none"
           style={{ transform: 'translateY(-50%) scaleX(-1)' }}
         >
           <Lottie
-            animationData={walkingAnim}
+            animationData={cuteTigerAnim}
             loop={true}
             autoplay={true}
             style={{ 
@@ -99,16 +99,8 @@ const Login = () => {
       </div>
 
       <div className="max-w-md w-full relative z-20">
-        {/* Header */}
+        {/* Header - NO FLAME, just title */}
         <div className="text-center mb-8 animate-fadeIn">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="bg-tiger-gradient p-6 rounded-full shadow-[0_0_50px_rgba(255,140,0,0.6)] animate-roar">
-                <Flame className="w-16 h-16 text-white" />
-              </div>
-              <Crown className="absolute -top-2 -right-2 w-12 h-12 text-tiger-yellow animate-pulse tiger-eyes" />
-            </div>
-          </div>
           <h1 className="text-5xl font-extrabold mb-3 alpha-text animate-prowl">
             Justin's LEOPARDS
           </h1>
@@ -124,11 +116,11 @@ const Login = () => {
 
         <div className="card-alpha animate-slideUp">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <Flame className="w-8 h-8 text-tiger-yellow animate-pulse" />
+            <span className="text-2xl">🐆</span>
             <h2 className="text-3xl font-bold tiger-text">
-              Welcome Back, Tiger
+              Welcome Back, Leopard
             </h2>
-            <Flame className="w-8 h-8 text-tiger-yellow animate-pulse" />
+            <span className="text-2xl">🐆</span>
           </div>
 
           {error && (
@@ -151,7 +143,7 @@ const Login = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-field pl-10"
-                  placeholder="tiger@pride.com"
+                  placeholder="leopard@pride.com"
                   required
                 />
               </div>
@@ -188,7 +180,7 @@ const Login = () => {
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
-                  <span>🐯</span>
+                  <span>🐆</span>
                   <span>Enter Pride</span>
                   <span>🔥</span>
                 </span>
@@ -203,7 +195,7 @@ const Login = () => {
                 to="/register" 
                 className="text-tiger-orange hover:text-tiger-yellow font-bold transition-colors"
               >
-                Join the Pack 🐯
+                Join the Pack 🐆
               </Link>
             </p>
           </div>

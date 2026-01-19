@@ -9,7 +9,7 @@ const Preloader = ({ onComplete, minDisplayTime = 3000 }) => {
     // Load Cute Tiger animation
     const loadAnimation = async () => {
       try {
-        const res = await fetch('/Cute_Tiger.json');
+        const res = await fetch('/Cute Tiger.json');
         const data = await res.json();
         setCuteTigerAnim(data);
       } catch (err) {
