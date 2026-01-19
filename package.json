@@ -25,5 +25,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/yourusername/sales-scoreboard.git"
+  },
+  "dependencies": {
+    "lottie-react": "^2.4.1"
   }
 }

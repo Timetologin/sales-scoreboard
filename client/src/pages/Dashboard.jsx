@@ -2,14 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { usersAPI, settingsAPI } from '../services/api';
 import { Trophy, Crown, Medal, TrendingUp, Users, Target, Award, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Lottie from 'lottie-react';
 
+// Import local Lottie JSON files - will be loaded from public folder
 const Dashboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [monthlyTarget, setMonthlyTarget] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  
+  // Lottie animation data
+  const [walkingAnim, setWalkingAnim] = useState(null);
+  const [cuteTigerAnim, setCuteTigerAnim] = useState(null);
+  const [sideTigerAnim, setSideTigerAnim] = useState(null);
 
   useEffect(() => {
+    // Load Lottie animations
+    fetch('/Walking.json')
+      .then(res => res.json())
+      .then(data => setWalkingAnim(data))
+      .catch(err => console.error('Failed to load Walking animation:', err));
+    
+    fetch('/Cute_Tiger.json')
+      .then(res => res.json())
+      .then(data => setCuteTigerAnim(data))
+      .catch(err => console.error('Failed to load Cute Tiger animation:', err));
+    
+    fetch('/Tiger.json')
+      .then(res => res.json())
+      .then(data => setSideTigerAnim(data))
+      .catch(err => console.error('Failed to load Tiger animation:', err));
+
     fetchLeaderboard();
     fetchMonthlyTarget();
     
@@ -116,7 +139,29 @@ const Dashboard = () => {
   const restOfPlayers = leaderboard.slice(3);
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 relative">
+      {/* 🐯 Fixed Tiger on Left Side - Follows Scroll */}
+      {sideTigerAnim && (
+        <div className="fixed left-0 top-1/2 -translate-y-1/2 z-40 pointer-events-none hidden lg:block">
+          <motion.div
+            initial={{ x: -100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="w-24 h-24"
+            style={{
+              filter: 'drop-shadow(0 0 15px rgba(255, 149, 0, 0.5))'
+            }}
+          >
+            <Lottie
+              animationData={sideTigerAnim}
+              loop={true}
+              autoplay={true}
+              style={{ width: '100%', height: '100%' }}
+            />
+          </motion.div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto">
         {/* 🐯 Hero Section with Cute Tiger */}
         <motion.div
@@ -125,20 +170,25 @@ const Dashboard = () => {
           className="mb-8"
         >
           <div className="text-center mb-6">
-            {/* Cute Tiger Animation - iframe שעובד! */}
+            {/* Cute Tiger Animation */}
             <div className="flex justify-center mb-4">
               <div className="w-40 h-40 md:w-48 md:h-48">
-                <iframe 
-                  src="https://lottie.host/embed/719cc542-fb72-4649-86f4-c04fbc22d58b/vjKvPxrrsj.lottie"
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    border: 'none',
-                    background: 'transparent',
-                    filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.5))'
-                  }}
-                  title="Tiger Animation"
-                />
+                {cuteTigerAnim ? (
+                  <Lottie
+                    animationData={cuteTigerAnim}
+                    loop={true}
+                    autoplay={true}
+                    style={{ 
+                      width: '100%', 
+                      height: '100%',
+                      filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.5))'
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-8xl animate-bounce">🐯</span>
+                  </div>
+                )}
               </div>
             </div>
             
@@ -151,12 +201,12 @@ const Dashboard = () => {
             </p>
           </div>
 
-          {/* Monthly Target Card */}
+          {/* Monthly Target Card with Walking Tiger */}
           {monthlyTarget > 0 && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mb-6 card-alpha prowl-effect"
+              className="mb-6 card-alpha prowl-effect relative overflow-hidden"
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -174,9 +224,30 @@ const Dashboard = () => {
                 </div>
               </div>
               
-              {/* Progress Bar */}
+              {/* Progress Bar Container with Walking Tiger */}
               <div className="relative">
-                <div className="h-8 bg-gray-800 rounded-full overflow-hidden border-2 border-tiger-orange">
+                {/* Walking Tiger Animation - Above the Progress Bar */}
+                {walkingAnim && (
+                  <motion.div
+                    initial={{ x: '-10%' }}
+                    animate={{ x: `${Math.min(monthlyProgress, 95)}%` }}
+                    transition={{ duration: 2, ease: "easeOut" }}
+                    className="absolute -top-16 left-0 w-20 h-20 z-10"
+                    style={{
+                      filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))'
+                    }}
+                  >
+                    <Lottie
+                      animationData={walkingAnim}
+                      loop={true}
+                      autoplay={true}
+                      style={{ width: '100%', height: '100%' }}
+                    />
+                  </motion.div>
+                )}
+                
+                {/* Progress Bar */}
+                <div className="h-8 bg-gray-800 rounded-full overflow-hidden border-2 border-tiger-orange mt-8">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${Math.min(monthlyProgress, 100)}%` }}
@@ -184,11 +255,11 @@ const Dashboard = () => {
                     className={`h-full ${
                       monthlyAchieved 
                         ? 'bg-gradient-to-r from-green-400 via-green-500 to-green-600' 
-                        : 'bg-tiger-gradient'
+                        : 'bg-gradient-to-r from-tiger-orange to-tiger-yellow'
                     }`}
                   />
                 </div>
-                <div className="absolute inset-0 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center justify-center mt-8">
                   <span className="text-white font-bold text-sm drop-shadow-lg">
                     {monthlyProgress.toFixed(1)}% Complete
                   </span>
@@ -359,7 +430,7 @@ const Dashboard = () => {
                         </div>
                         <div className="w-full bg-gray-700 rounded-full h-2">
                           <div
-                            className="bg-tiger-gradient h-2 rounded-full transition-all"
+                            className="bg-gradient-to-r from-tiger-orange to-tiger-yellow h-2 rounded-full transition-all"
                             style={{
                               width: `${Math.min(((user.todayFTDs || 0) / user.dailyTarget) * 100, 100)}%`,
                             }}
@@ -483,7 +554,7 @@ const Dashboard = () => {
                           className={`h-full ${
                             user.todayFTDs >= user.dailyTarget 
                               ? 'bg-gradient-to-r from-green-400 to-green-600'
-                              : 'bg-tiger-gradient'
+                              : 'bg-gradient-to-r from-tiger-orange to-tiger-yellow'
                           }`}
                         />
                       ) : (
@@ -493,7 +564,7 @@ const Dashboard = () => {
                             width: maxFTDs > 0 ? `${(user.ftds / maxFTDs) * 100}%` : '0%'
                           }}
                           transition={{ duration: 1, delay: index * 0.05 }}
-                          className="h-full bg-tiger-gradient"
+                          className="h-full bg-gradient-to-r from-tiger-orange to-tiger-yellow"
                         />
                       )}
                     </div>

@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import Lottie from 'lottie-react';
 
-const Preloader = ({ onComplete, minDisplayTime = 2500 }) => {
+const Preloader = ({ onComplete, minDisplayTime = 3000 }) => {
   const [fadeOut, setFadeOut] = useState(false);
+  const [walkingAnim, setWalkingAnim] = useState(null);
 
   useEffect(() => {
-    // 2.5 שניות ואז נעלם
+    // Load Walking animation for preloader
+    fetch('/Walking.json')
+      .then(res => res.json())
+      .then(data => setWalkingAnim(data))
+      .catch(err => console.error('Failed to load Walking animation:', err));
+  }, []);
+
+  useEffect(() => {
+    // Display for minDisplayTime then fade out
     const timer = setTimeout(() => {
       setFadeOut(true);
       setTimeout(() => {
@@ -32,23 +42,28 @@ const Preloader = ({ onComplete, minDisplayTime = 2500 }) => {
 
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center">
-        {/* Lottie Animation - iframe שעובד! */}
+        {/* Lottie Animation - Walking Leopard */}
         <div 
           className="w-80 h-80 mb-4"
           style={{
             filter: 'drop-shadow(0 0 30px rgba(255, 149, 0, 0.6))'
           }}
         >
-          <iframe 
-            src="https://lottie.host/embed/719cc542-fb72-4649-86f4-c04fbc22d58b/vjKvPxrrsj.lottie"
-            style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-              background: 'transparent',
-            }}
-            title="Loading Animation"
-          />
+          {walkingAnim ? (
+            <Lottie
+              animationData={walkingAnim}
+              loop={true}
+              autoplay={true}
+              style={{ 
+                width: '100%', 
+                height: '100%',
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-9xl animate-bounce">🐆</span>
+            </div>
+          )}
         </div>
 
         {/* Brand Name */}

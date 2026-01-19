@@ -1,20 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Mail, Lock, AlertCircle, Flame, Crown } from 'lucide-react';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-
-// הנמר הרץ - אותו אחד מהפרילודר
-const RUNNING_LEOPARD_URL = 'https://lottie.host/3b1dc1ed-c932-4128-81b2-a758aa308615/zFL5oESLeJ.lottie';
+import Lottie from 'lottie-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [walkingAnim, setWalkingAnim] = useState(null);
   
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Load Walking animation
+    fetch('/Walking.json')
+      .then(res => res.json())
+      .then(data => setWalkingAnim(data))
+      .catch(err => console.error('Failed to load Walking animation:', err));
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,34 +47,40 @@ const Login = () => {
         <div className="absolute bottom-20 left-1/2 w-96 h-96 bg-tiger-darkOrange rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-bounce-slow" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      {/* 🐆 נמר רץ בצד שמאל */}
-      <div className="fixed left-0 top-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 z-10 pointer-events-none">
-        <DotLottieReact
-          src={RUNNING_LEOPARD_URL}
-          loop
-          autoplay
-          style={{ 
-            width: '100%', 
-            height: '100%',
-            filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.4))'
-          }}
-        />
-      </div>
+      {/* 🐆 Walking Leopard on Left Side */}
+      {walkingAnim && (
+        <div className="fixed left-0 top-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 z-10 pointer-events-none">
+          <Lottie
+            animationData={walkingAnim}
+            loop={true}
+            autoplay={true}
+            style={{ 
+              width: '100%', 
+              height: '100%',
+              filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.4))'
+            }}
+          />
+        </div>
+      )}
 
-      {/* 🐆 נמר רץ בצד ימין (מראה - הפוך) */}
-      <div className="fixed right-0 top-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 z-10 pointer-events-none"
-           style={{ transform: 'translateY(-50%) scaleX(-1)' }}>
-        <DotLottieReact
-          src={RUNNING_LEOPARD_URL}
-          loop
-          autoplay
-          style={{ 
-            width: '100%', 
-            height: '100%',
-            filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.4))'
-          }}
-        />
-      </div>
+      {/* 🐆 Walking Leopard on Right Side (Mirrored) */}
+      {walkingAnim && (
+        <div 
+          className="fixed right-0 top-1/2 -translate-y-1/2 w-48 h-48 md:w-64 md:h-64 z-10 pointer-events-none"
+          style={{ transform: 'translateY(-50%) scaleX(-1)' }}
+        >
+          <Lottie
+            animationData={walkingAnim}
+            loop={true}
+            autoplay={true}
+            style={{ 
+              width: '100%', 
+              height: '100%',
+              filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.4))'
+            }}
+          />
+        </div>
+      )}
 
       {/* Floating paw prints */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -87,7 +99,7 @@ const Login = () => {
       </div>
 
       <div className="max-w-md w-full relative z-20">
-        {/* Header - ללא הנמר שהיה כאן */}
+        {/* Header */}
         <div className="text-center mb-8 animate-fadeIn">
           <div className="flex justify-center mb-6">
             <div className="relative">
