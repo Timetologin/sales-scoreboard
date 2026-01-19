@@ -1,14 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
-// הנמר הרץ מהפרילודר
-const RUNNING_LEOPARD_URL = 'https://lottie.host/3b1dc1ed-c932-4128-81b2-a758aa308615/zFL5oESLeJ.lottie';
-
-const Preloader = ({ onComplete, minDisplayTime = 5000 }) => {
+const Preloader = ({ onComplete, minDisplayTime = 2500 }) => {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    // 5 שניות ואז נעלם
+    // 2.5 שניות ואז נעלם
     const timer = setTimeout(() => {
       setFadeOut(true);
       setTimeout(() => {
@@ -36,21 +32,22 @@ const Preloader = ({ onComplete, minDisplayTime = 5000 }) => {
 
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center">
-        {/* Lottie Animation - הנמר הרץ */}
+        {/* Lottie Animation - iframe שעובד! */}
         <div 
           className="w-80 h-80 mb-4"
           style={{
             filter: 'drop-shadow(0 0 30px rgba(255, 149, 0, 0.6))'
           }}
         >
-          <DotLottieReact
-            src={RUNNING_LEOPARD_URL}
-            loop
-            autoplay
-            style={{ 
-              width: '100%', 
+          <iframe 
+            src="https://lottie.host/embed/719cc542-fb72-4649-86f4-c04fbc22d58b/vjKvPxrrsj.lottie"
+            style={{
+              width: '100%',
               height: '100%',
+              border: 'none',
+              background: 'transparent',
             }}
+            title="Loading Animation"
           />
         </div>
 

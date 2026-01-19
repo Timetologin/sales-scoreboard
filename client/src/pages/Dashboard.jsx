@@ -2,10 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { usersAPI, settingsAPI } from '../services/api';
 import { Trophy, Crown, Medal, TrendingUp, Users, Target, Award, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-
-// הנמר החמוד שהיה בLogin - עכשיו בHero
-const CUTE_TIGER_URL = 'https://lottie.host/719cc542-fb72-4649-86f4-c04fbc22d58b/vjKvPxrrsj.lottie';
 
 const Dashboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -129,25 +125,26 @@ const Dashboard = () => {
           className="mb-8"
         >
           <div className="text-center mb-6">
-            {/* Cute Tiger Animation */}
+            {/* Cute Tiger Animation - iframe שעובד! */}
             <div className="flex justify-center mb-4">
               <div className="w-40 h-40 md:w-48 md:h-48">
-                <DotLottieReact
-                  src={CUTE_TIGER_URL}
-                  loop
-                  autoplay
-                  style={{ 
-                    width: '100%', 
+                <iframe 
+                  src="https://lottie.host/embed/719cc542-fb72-4649-86f4-c04fbc22d58b/vjKvPxrrsj.lottie"
+                  style={{
+                    width: '100%',
                     height: '100%',
+                    border: 'none',
+                    background: 'transparent',
                     filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.5))'
                   }}
+                  title="Tiger Animation"
                 />
               </div>
             </div>
             
             <h1 className="text-5xl font-extrabold alpha-text mb-2 flex items-center justify-center gap-3">
               <Trophy className="w-12 h-12 text-tiger-yellow" />
-              Tiger's Pride Leaderboard
+              Justin's LEOPARDS Leaderboard
             </h1>
             <p className="text-tiger-orange font-bold text-xl flex items-center justify-center gap-2">
               "Predators don't wait for opportunities, they create them!" 🦁
@@ -187,7 +184,7 @@ const Dashboard = () => {
                     className={`h-full ${
                       monthlyAchieved 
                         ? 'bg-gradient-to-r from-green-400 via-green-500 to-green-600' 
-                        : 'tiger-gradient'
+                        : 'bg-tiger-gradient'
                     }`}
                   />
                 </div>
@@ -486,7 +483,7 @@ const Dashboard = () => {
                           className={`h-full ${
                             user.todayFTDs >= user.dailyTarget 
                               ? 'bg-gradient-to-r from-green-400 to-green-600'
-                              : 'tiger-gradient'
+                              : 'bg-tiger-gradient'
                           }`}
                         />
                       ) : (
@@ -496,7 +493,7 @@ const Dashboard = () => {
                             width: maxFTDs > 0 ? `${(user.ftds / maxFTDs) * 100}%` : '0%'
                           }}
                           transition={{ duration: 1, delay: index * 0.05 }}
-                          className="h-full tiger-gradient"
+                          className="h-full bg-tiger-gradient"
                         />
                       )}
                     </div>

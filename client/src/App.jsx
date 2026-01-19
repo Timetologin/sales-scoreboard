@@ -24,14 +24,14 @@ const ConditionalBackgroundEffects = () => {
 function App() {
   const [showPreloader, setShowPreloader] = useState(true);
 
-  // הפרילודר מציג 5 שניות ואז נעלם
+  // הפרילודר מציג 2.5 שניות ואז נעלם
   const handlePreloaderComplete = () => {
     setShowPreloader(false);
   };
 
-  // Show preloader first - 5 seconds
+  // Show preloader first - 2.5 seconds
   if (showPreloader) {
-    return <Preloader onComplete={handlePreloaderComplete} minDisplayTime={5000} />;
+    return <Preloader onComplete={handlePreloaderComplete} minDisplayTime={2500} />;
   }
 
   return (
