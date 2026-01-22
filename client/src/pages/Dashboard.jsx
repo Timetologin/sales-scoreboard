@@ -110,34 +110,49 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+      {/* 🐯 Cute Tiger on Left Side - FIXED (doesn't move when scrolling) */}
+      {cuteTigerAnim && (
+        <div className="fixed left-2 top-1/2 -translate-y-1/2 w-40 h-40 md:w-56 md:h-56 z-40 pointer-events-none hidden lg:block">
+          <Lottie
+            animationData={cuteTigerAnim}
+            loop={true}
+            autoplay={true}
+            style={{ 
+              width: '100%', 
+              height: '100%',
+              filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.5))'
+            }}
+          />
+        </div>
+      )}
+
+      {/* 🐯 Cute Tiger on Right Side - FIXED (Mirrored) */}
+      {cuteTigerAnim && (
+        <div 
+          className="fixed right-2 top-1/2 -translate-y-1/2 w-40 h-40 md:w-56 md:h-56 z-40 pointer-events-none hidden lg:block"
+          style={{ transform: 'translateY(-50%) scaleX(-1)' }}
+        >
+          <Lottie
+            animationData={cuteTigerAnim}
+            loop={true}
+            autoplay={true}
+            style={{ 
+              width: '100%', 
+              height: '100%',
+              filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.5))'
+            }}
+          />
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto">
-        {/* 🐯 Hero Section with Cute Tiger Lottie */}
+        {/* 🐯 Hero Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
           <div className="text-center mb-6">
-            {/* Cute Tiger Lottie Animation - FROM LOCAL FILE */}
-            <div className="flex justify-center mb-4">
-              <div className="w-40 h-40 md:w-48 md:h-48">
-                {cuteTigerAnim ? (
-                  <Lottie
-                    animationData={cuteTigerAnim}
-                    loop={true}
-                    autoplay={true}
-                    style={{ 
-                      width: '100%', 
-                      height: '100%',
-                      filter: 'drop-shadow(0 0 20px rgba(255, 149, 0, 0.5))'
-                    }}
-                  />
-                ) : (
-                  <div className="animate-pulse bg-tiger-orange/20 rounded-full w-full h-full"></div>
-                )}
-              </div>
-            </div>
-            
             <h1 className="text-5xl font-extrabold alpha-text mb-2 flex items-center justify-center gap-3">
               <Trophy className="w-12 h-12 text-tiger-yellow" />
               Justin's LEOPARDS Leaderboard
