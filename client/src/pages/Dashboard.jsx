@@ -154,7 +154,7 @@ const Dashboard = () => {
               animate={{ opacity: 1, scale: 1 }}
               className="mb-6 card-alpha prowl-effect"
             >
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-3">
                   <Calendar className="w-8 h-8 text-tiger-yellow" />
                   <div>
@@ -171,8 +171,8 @@ const Dashboard = () => {
               </div>
               
               {/* Walking Tiger Animation - Centered above progress bar */}
-              <div className="flex justify-center mb-1">
-                <div className="w-20 h-20">
+              <div className="flex justify-center -mb-3">
+                <div className="w-16 h-16">
                   {walkingAnim ? (
                     <Lottie
                       animationData={walkingAnim}
@@ -216,7 +216,7 @@ const Dashboard = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-3 text-center"
+                  className="mt-2 text-center"
                 >
                   <p className="text-2xl font-extrabold text-green-400 flex items-center justify-center gap-2">
                     🎉 MONTHLY GOAL ACHIEVED! 🎉
@@ -228,7 +228,7 @@ const Dashboard = () => {
               )}
 
               {!monthlyAchieved && monthlyTarget - totalFTDs > 0 && (
-                <div className="mt-3 text-center">
+                <div className="mt-2 text-center">
                   <p className="text-lg font-bold text-tiger-yellow">
                     {monthlyTarget - totalFTDs} more FTDs to reach the goal! 🎯
                   </p>
