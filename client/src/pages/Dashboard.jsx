@@ -170,9 +170,9 @@ const Dashboard = () => {
                 </div>
               </div>
               
-              {/* Walking Tiger Animation - Centered above progress bar, BIGGER */}
+              {/* Walking Tiger Animation - Centered above progress bar */}
               <div className="flex justify-center mb-1">
-                <div className="w-32 h-32">
+                <div className="w-20 h-20">
                   {walkingAnim ? (
                     <Lottie
                       animationData={walkingAnim}
