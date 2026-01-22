@@ -341,20 +341,32 @@ const AdminPanel = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center"
+                        className="fixed inset-0 z-[100] pointer-events-none flex flex-col items-center justify-center"
                     >
                         {/* Background overlay */}
                         <div className="absolute inset-0 bg-black/30" />
                         
-                        {/* Clapping hands animation */}
+                        {/* Celebration text - ABOVE */}
+                        <motion.div
+                            initial={{ y: -20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="text-center mb-4 z-10"
+                        >
+                            <p className="text-4xl md:text-6xl font-extrabold text-tiger-yellow drop-shadow-lg">
+                                🎉 +1 FTD! 🎉
+                            </p>
+                        </motion.div>
+                        
+                        {/* Clapping hands animation - BELOW */}
                         <motion.div
                             initial={{ scale: 0, rotate: -180 }}
                             animate={{ scale: 1, rotate: 0 }}
                             exit={{ scale: 0, rotate: 180 }}
                             transition={{ type: "spring", damping: 15 }}
-                            className="relative z-10"
+                            className="z-10"
                         >
-                            {clappingAnim && (
+                            {clappingAnim ? (
                                 <div className="w-64 h-64 md:w-96 md:h-96">
                                     <Lottie
                                         animationData={clappingAnim}
@@ -363,19 +375,11 @@ const AdminPanel = () => {
                                         style={{ width: '100%', height: '100%' }}
                                     />
                                 </div>
+                            ) : (
+                                <div className="text-[150px] md:text-[200px] animate-bounce">
+                                    👏
+                                </div>
                             )}
-                            
-                            {/* Celebration text */}
-                            <motion.div
-                                initial={{ y: 20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.3 }}
-                                className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap"
-                            >
-                                <p className="text-4xl md:text-5xl font-extrabold text-tiger-yellow drop-shadow-lg">
-                                    🎉 +1 FTD! 🎉
-                                </p>
-                            </motion.div>
                         </motion.div>
                         
                         {/* Confetti-like elements */}
