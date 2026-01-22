@@ -170,9 +170,9 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* Walking Tiger - Floating centered, doesn't affect box size */}
+              {/* Walking Tiger - Floating centered above the bar */}
               {walkingAnim && (
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 pointer-events-none z-10">
+                <div className="absolute left-1/2 -translate-x-1/2 -top-20 w-64 h-64 pointer-events-none z-10">
                   <Lottie
                     animationData={walkingAnim}
                     loop={true}
