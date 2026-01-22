@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usersAPI, settingsAPI, notesAPI } from '../services/api';
+import Lottie from 'lottie-react';
 import {
     Users,
     Plus,
@@ -119,6 +120,12 @@ const AdminPanel = () => {
     const [showAvatarModal, setShowAvatarModal] = useState(null);
     const [message, setMessage] = useState({ type: '', text: '' });
 
+    // 🎉 Celebration states
+    const [showCelebration, setShowCelebration] = useState(false);
+    const [clappingAnim, setClappingAnim] = useState(null);
+    const kachingAudioRef = useRef(null);
+    const cheeringAudioRef = useRef(null);
+
     // ⭐ NEW: Notes states
     const [showNotesPanel, setShowNotesPanel] = useState(false);
     const [allNotes, setAllNotes] = useState([]);
@@ -126,6 +133,12 @@ const AdminPanel = () => {
 
     useEffect(() => {
         fetchUsers();
+        
+        // Load clapping animation
+        fetch('/Clapping_Hands.json')
+            .then(res => res.json())
+            .then(data => setClappingAnim(data))
+            .catch(err => console.error('Failed to load clapping animation:', err));
     }, []);
 
     const fetchUsers = async () => {
@@ -205,9 +218,36 @@ const AdminPanel = () => {
             await usersAPI.incrementFTD(userId);
             await fetchUsers();
             showMessage('success', '✅ Added +1 FTD!');
+            
+            // 🎉 Trigger celebration!
+            triggerCelebration();
         } catch (err) {
             showMessage('error', '❌ Failed to add FTD');
         }
+    };
+
+    // 🎉 Celebration function
+    const triggerCelebration = () => {
+        setShowCelebration(true);
+        
+        // Play sounds
+        if (kachingAudioRef.current) {
+            kachingAudioRef.current.currentTime = 0;
+            kachingAudioRef.current.play().catch(e => console.log('Audio play failed:', e));
+        }
+        
+        setTimeout(() => {
+            if (cheeringAudioRef.current) {
+                cheeringAudioRef.current.currentTime = 0;
+                cheeringAudioRef.current.volume = 0.5;
+                cheeringAudioRef.current.play().catch(e => console.log('Audio play failed:', e));
+            }
+        }, 300);
+        
+        // Hide celebration after 3 seconds
+        setTimeout(() => {
+            setShowCelebration(false);
+        }, 3000);
     };
 
     const handleDecrementFTD = async (userId) => {
@@ -290,6 +330,82 @@ const AdminPanel = () => {
 
     return (
         <div className="min-h-screen p-8">
+            {/* 🔊 Audio elements */}
+            <audio ref={kachingAudioRef} src="/cash-register-kaching-376867.mp3" preload="auto" />
+            <audio ref={cheeringAudioRef} src="/crowd-cheering-383111.mp3" preload="auto" />
+            
+            {/* 🎉 Celebration Overlay */}
+            <AnimatePresence>
+                {showCelebration && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] pointer-events-none flex items-center justify-center"
+                    >
+                        {/* Background overlay */}
+                        <div className="absolute inset-0 bg-black/30" />
+                        
+                        {/* Clapping hands animation */}
+                        <motion.div
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            exit={{ scale: 0, rotate: 180 }}
+                            transition={{ type: "spring", damping: 15 }}
+                            className="relative z-10"
+                        >
+                            {clappingAnim && (
+                                <div className="w-64 h-64 md:w-96 md:h-96">
+                                    <Lottie
+                                        animationData={clappingAnim}
+                                        loop={true}
+                                        autoplay={true}
+                                        style={{ width: '100%', height: '100%' }}
+                                    />
+                                </div>
+                            )}
+                            
+                            {/* Celebration text */}
+                            <motion.div
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.3 }}
+                                className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap"
+                            >
+                                <p className="text-4xl md:text-5xl font-extrabold text-tiger-yellow drop-shadow-lg">
+                                    🎉 +1 FTD! 🎉
+                                </p>
+                            </motion.div>
+                        </motion.div>
+                        
+                        {/* Confetti-like elements */}
+                        {[...Array(20)].map((_, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ 
+                                    y: -100, 
+                                    x: Math.random() * window.innerWidth - window.innerWidth / 2,
+                                    rotate: 0 
+                                }}
+                                animate={{ 
+                                    y: window.innerHeight + 100,
+                                    rotate: Math.random() * 360
+                                }}
+                                transition={{ 
+                                    duration: 2 + Math.random() * 2,
+                                    delay: Math.random() * 0.5,
+                                    ease: "linear"
+                                }}
+                                className="absolute text-4xl"
+                                style={{ left: '50%' }}
+                            >
+                                {['🌟', '⭐', '✨', '🔥', '💰', '🎯', '👏'][i % 7]}
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <motion.div
