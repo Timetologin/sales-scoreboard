@@ -154,7 +154,7 @@ const Dashboard = () => {
               animate={{ opacity: 1, scale: 1 }}
               className="mb-6 card-alpha prowl-effect"
             >
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Calendar className="w-8 h-8 text-tiger-yellow" />
                   <div>
@@ -163,35 +163,30 @@ const Dashboard = () => {
                       {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                     </p>
                   </div>
+                  {/* Walking Tiger - Next to title */}
+                  <div className="w-16 h-16">
+                    {walkingAnim ? (
+                      <Lottie
+                        animationData={walkingAnim}
+                        loop={true}
+                        autoplay={true}
+                        style={{ 
+                          width: '100%', 
+                          height: '100%',
+                          filter: 'drop-shadow(0 0 15px rgba(255, 149, 0, 0.6))'
+                        }}
+                      />
+                    ) : null}
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="text-4xl font-extrabold alpha-text">{totalFTDs}</p>
                   <p className="text-sm text-tiger-yellow font-bold">/ {monthlyTarget} FTDs</p>
                 </div>
               </div>
-              
-              {/* Walking Tiger Animation - Centered above progress bar */}
-              <div className="flex justify-center -mb-3">
-                <div className="w-16 h-16">
-                  {walkingAnim ? (
-                    <Lottie
-                      animationData={walkingAnim}
-                      loop={true}
-                      autoplay={true}
-                      style={{ 
-                        width: '100%', 
-                        height: '100%',
-                        filter: 'drop-shadow(0 0 15px rgba(255, 149, 0, 0.6))'
-                      }}
-                    />
-                  ) : (
-                    <div className="animate-pulse bg-tiger-orange/20 rounded-full w-full h-full"></div>
-                  )}
-                </div>
-              </div>
 
               {/* Progress Bar - ORIGINAL STRUCTURE with percentage INSIDE */}
-              <div className="relative">
+              <div className="relative mt-2">
                 <div className="h-8 bg-gray-800 rounded-full overflow-hidden border-2 border-tiger-orange">
                   <motion.div
                     initial={{ width: 0 }}
