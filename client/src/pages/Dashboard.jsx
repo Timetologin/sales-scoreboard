@@ -152,7 +152,7 @@ const Dashboard = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mb-6 card-alpha prowl-effect"
+              className="mb-6 card-alpha prowl-effect relative overflow-visible"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -170,26 +170,24 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              {/* Walking Tiger - Centered and BIG */}
-              <div className="flex justify-center -my-6">
-                <div className="w-64 h-64">
-                  {walkingAnim ? (
-                    <Lottie
-                      animationData={walkingAnim}
-                      loop={true}
-                      autoplay={true}
-                      style={{ 
-                        width: '100%', 
-                        height: '100%',
-                        filter: 'drop-shadow(0 0 15px rgba(255, 149, 0, 0.6))'
-                      }}
-                    />
-                  ) : null}
+              {/* Walking Tiger - Floating centered, doesn't affect box size */}
+              {walkingAnim && (
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 pointer-events-none z-10">
+                  <Lottie
+                    animationData={walkingAnim}
+                    loop={true}
+                    autoplay={true}
+                    style={{ 
+                      width: '100%', 
+                      height: '100%',
+                      filter: 'drop-shadow(0 0 15px rgba(255, 149, 0, 0.6))'
+                    }}
+                  />
                 </div>
-              </div>
+              )}
 
               {/* Progress Bar - ORIGINAL STRUCTURE with percentage INSIDE */}
-              <div className="relative">
+              <div className="relative mt-2">
                 <div className="h-8 bg-gray-800 rounded-full overflow-hidden border-2 border-tiger-orange">
                   <motion.div
                     initial={{ width: 0 }}
