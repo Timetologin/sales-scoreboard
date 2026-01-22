@@ -163,21 +163,6 @@ const Dashboard = () => {
                       {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                     </p>
                   </div>
-                  {/* Walking Tiger - Next to title */}
-                  <div className="w-16 h-16">
-                    {walkingAnim ? (
-                      <Lottie
-                        animationData={walkingAnim}
-                        loop={true}
-                        autoplay={true}
-                        style={{ 
-                          width: '100%', 
-                          height: '100%',
-                          filter: 'drop-shadow(0 0 15px rgba(255, 149, 0, 0.6))'
-                        }}
-                      />
-                    ) : null}
-                  </div>
                 </div>
                 <div className="text-right">
                   <p className="text-4xl font-extrabold alpha-text">{totalFTDs}</p>
@@ -185,8 +170,26 @@ const Dashboard = () => {
                 </div>
               </div>
 
+              {/* Walking Tiger - Centered and BIG */}
+              <div className="flex justify-center -my-6">
+                <div className="w-64 h-64">
+                  {walkingAnim ? (
+                    <Lottie
+                      animationData={walkingAnim}
+                      loop={true}
+                      autoplay={true}
+                      style={{ 
+                        width: '100%', 
+                        height: '100%',
+                        filter: 'drop-shadow(0 0 15px rgba(255, 149, 0, 0.6))'
+                      }}
+                    />
+                  ) : null}
+                </div>
+              </div>
+
               {/* Progress Bar - ORIGINAL STRUCTURE with percentage INSIDE */}
-              <div className="relative mt-2">
+              <div className="relative">
                 <div className="h-8 bg-gray-800 rounded-full overflow-hidden border-2 border-tiger-orange">
                   <motion.div
                     initial={{ width: 0 }}
