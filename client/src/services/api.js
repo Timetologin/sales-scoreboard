@@ -60,6 +60,9 @@ export const usersAPI = {
   // ⭐ NEW: Daily Target endpoint
   updateDailyTarget: (id, dailyTarget) => api.put(`/users/${id}/daily-target`, { dailyTarget }),
   
+  // ⭐ NEW: Monthly Target per User endpoint
+  updateMonthlyTarget: (id, monthlyTarget) => api.put(`/users/${id}/monthly-target`, { monthlyTarget }),
+  
   // Admin user management endpoints
   editUser: (id, userData) => api.put(`/users/${id}/edit`, userData),
   changePassword: (id, newPassword) => api.put(`/users/${id}/reset-password`, { newPassword }),

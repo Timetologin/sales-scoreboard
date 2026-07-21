@@ -39,6 +39,12 @@ const userSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
+  // ⭐ NEW: Monthly Target per User
+  monthlyTarget: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   dailyFTDs: {
     type: Number,
     default: 0,
@@ -161,6 +167,7 @@ userSchema.methods.getPublicProfile = function() {
     ftds: this.ftds,
     plusOnes: this.plusOnes,
     dailyTarget: this.dailyTarget,
+    monthlyTarget: this.monthlyTarget,
     dailyFTDs: this.dailyFTDs,
     todayFTDs: this.todayFTDs,
     lastResetDate: this.lastResetDate,

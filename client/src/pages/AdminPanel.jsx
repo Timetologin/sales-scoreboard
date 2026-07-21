@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usersAPI, settingsAPI, notesAPI } from '../services/api';
-import Lottie from 'lottie-react';
 import {
     Users,
     Plus,
@@ -117,14 +116,9 @@ const AdminPanel = () => {
     const [showMonthlyTargetModal, setShowMonthlyTargetModal] = useState(false);
     const [editingFTDs, setEditingFTDs] = useState(null);
     const [editingPlusOnes, setEditingPlusOnes] = useState(null);
+    const [editingMonthlyTarget, setEditingMonthlyTarget] = useState(null);
     const [showAvatarModal, setShowAvatarModal] = useState(null);
     const [message, setMessage] = useState({ type: '', text: '' });
-
-    // 🎉 Celebration states
-    const [showCelebration, setShowCelebration] = useState(false);
-    const [clappingAnim, setClappingAnim] = useState(null);
-    const kachingAudioRef = useRef(null);
-    const cheeringAudioRef = useRef(null);
 
     // ⭐ NEW: Notes states
     const [showNotesPanel, setShowNotesPanel] = useState(false);
@@ -133,12 +127,6 @@ const AdminPanel = () => {
 
     useEffect(() => {
         fetchUsers();
-        
-        // Load clapping animation
-        fetch('/Clapping_Hands.json')
-            .then(res => res.json())
-            .then(data => setClappingAnim(data))
-            .catch(err => console.error('Failed to load clapping animation:', err));
     }, []);
 
     const fetchUsers = async () => {
@@ -213,41 +201,25 @@ const AdminPanel = () => {
         }
     };
 
+    const handleUpdateMonthlyTargetPerUser = async (userId, newTarget) => {
+        try {
+            await usersAPI.updateMonthlyTarget(userId, parseInt(newTarget) || 0);
+            await fetchUsers();
+            setEditingMonthlyTarget(null);
+            showMessage('success', '✅ Monthly Target updated successfully!');
+        } catch (err) {
+            showMessage('error', '❌ Failed to update Monthly Target');
+        }
+    };
+
     const handleIncrementFTD = async (userId) => {
         try {
             await usersAPI.incrementFTD(userId);
             await fetchUsers();
             showMessage('success', '✅ Added +1 FTD!');
-            
-            // 🎉 Trigger celebration!
-            triggerCelebration();
         } catch (err) {
             showMessage('error', '❌ Failed to add FTD');
         }
-    };
-
-    // 🎉 Celebration function
-    const triggerCelebration = () => {
-        setShowCelebration(true);
-        
-        // Play sounds
-        if (kachingAudioRef.current) {
-            kachingAudioRef.current.currentTime = 0;
-            kachingAudioRef.current.play().catch(e => console.log('Audio play failed:', e));
-        }
-        
-        setTimeout(() => {
-            if (cheeringAudioRef.current) {
-                cheeringAudioRef.current.currentTime = 0;
-                cheeringAudioRef.current.volume = 0.5;
-                cheeringAudioRef.current.play().catch(e => console.log('Audio play failed:', e));
-            }
-        }, 300);
-        
-        // Hide celebration after 3 seconds
-        setTimeout(() => {
-            setShowCelebration(false);
-        }, 3000);
     };
 
     const handleDecrementFTD = async (userId) => {
@@ -330,86 +302,6 @@ const AdminPanel = () => {
 
     return (
         <div className="min-h-screen p-8">
-            {/* 🔊 Audio elements */}
-            <audio ref={kachingAudioRef} src="/cash-register-kaching-376867.mp3" preload="auto" />
-            <audio ref={cheeringAudioRef} src="/crowd-cheering-383111.mp3" preload="auto" />
-            
-            {/* 🎉 Celebration Overlay */}
-            <AnimatePresence>
-                {showCelebration && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] pointer-events-none flex flex-col items-center justify-center"
-                    >
-                        {/* Background overlay */}
-                        <div className="absolute inset-0 bg-black/30" />
-                        
-                        {/* Celebration text - ABOVE */}
-                        <motion.div
-                            initial={{ y: -20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="text-center mb-4 z-10"
-                        >
-                            <p className="text-4xl md:text-6xl font-extrabold text-tiger-yellow drop-shadow-lg">
-                                🎉 +1 FTD! 🎉
-                            </p>
-                        </motion.div>
-                        
-                        {/* Clapping hands animation - BELOW */}
-                        <motion.div
-                            initial={{ scale: 0, rotate: -180 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            exit={{ scale: 0, rotate: 180 }}
-                            transition={{ type: "spring", damping: 15 }}
-                            className="z-10"
-                        >
-                            {clappingAnim ? (
-                                <div className="w-64 h-64 md:w-96 md:h-96">
-                                    <Lottie
-                                        animationData={clappingAnim}
-                                        loop={true}
-                                        autoplay={true}
-                                        style={{ width: '100%', height: '100%' }}
-                                    />
-                                </div>
-                            ) : (
-                                <div className="text-[150px] md:text-[200px] animate-bounce">
-                                    👏
-                                </div>
-                            )}
-                        </motion.div>
-                        
-                        {/* Confetti-like elements */}
-                        {[...Array(20)].map((_, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ 
-                                    y: -100, 
-                                    x: Math.random() * window.innerWidth - window.innerWidth / 2,
-                                    rotate: 0 
-                                }}
-                                animate={{ 
-                                    y: window.innerHeight + 100,
-                                    rotate: Math.random() * 360
-                                }}
-                                transition={{ 
-                                    duration: 2 + Math.random() * 2,
-                                    delay: Math.random() * 0.5,
-                                    ease: "linear"
-                                }}
-                                className="absolute text-4xl"
-                                style={{ left: '50%' }}
-                            >
-                                {['🌟', '⭐', '✨', '🔥', '💰', '🎯', '👏'][i % 7]}
-                            </motion.div>
-                        ))}
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <motion.div
@@ -636,7 +528,7 @@ const AdminPanel = () => {
                                     <th className="px-4 py-4 text-center alpha-text">📧 Email</th>
                                     <th className="px-4 py-4 text-center alpha-text">🎯 FTD's</th>
                                     <th className="px-4 py-4 text-center alpha-text">⭐ Plus Ones</th>
-                                    <th className="px-4 py-4 text-center alpha-text">📊 Daily Progress</th>
+                                    <th className="px-4 py-4 text-center alpha-text">🎯 Monthly Target</th>
                                     <th className="px-4 py-4 text-center alpha-text">👑 Role</th>
                                     <th className="px-4 py-4 text-center alpha-text">🎮 Actions</th>
                                 </tr>
@@ -833,36 +725,71 @@ const AdminPanel = () => {
                                             )}
                                         </td>
 
-                                        {/* Daily Progress */}
+                                        {/* Monthly Target per User */}
                                         <td className="px-4 py-4">
                                             <div className="text-center">
-                                                {user.dailyTarget && user.dailyTarget > 0 ? (
-                                                    <div className="space-y-1">
-                                                        <div className="flex items-center justify-center gap-2">
-                                                            <Calendar className="w-4 h-4 text-tiger-orange" />
-                                                            <span className="text-sm text-orange-200">
-                                                                {user.todayFTDs || 0} / {user.dailyTarget}
-                                                            </span>
-                                                        </div>
-                                                        <div className="w-full bg-gray-700 rounded-full h-2">
-                                                            <div
-                                                                className="bg-tiger-gradient h-2 rounded-full transition-all"
-                                                                style={{
-                                                                    width: `${Math.min(
-                                                                        ((user.todayFTDs || 0) / user.dailyTarget) * 100,
-                                                                        100
-                                                                    )}%`,
-                                                                }}
-                                                            ></div>
-                                                        </div>
-                                                        {user.todayFTDs >= user.dailyTarget && (
-                                                            <span className="text-xs text-green-400 font-bold">
-                                                                ✅ Target Achieved!
+                                                {editingMonthlyTarget === user.id ? (
+                                                    <div className="flex items-center justify-center gap-2">
+                                                        <input
+                                                            type="number"
+                                                            defaultValue={user.monthlyTarget || 0}
+                                                            className="w-20 px-2 py-1 bg-gray-700 border border-tiger-orange rounded text-white text-center"
+                                                            onBlur={(e) => {
+                                                                handleUpdateMonthlyTargetPerUser(user.id, e.target.value);
+                                                            }}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') {
+                                                                    const input = e.target;
+                                                                    handleUpdateMonthlyTargetPerUser(user.id, input.value);
+                                                                } else if (e.key === 'Escape') {
+                                                                    setEditingMonthlyTarget(null);
+                                                                }
+                                                            }}
+                                                            autoFocus
+                                                            min="0"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div 
+                                                        className="cursor-pointer hover:bg-tiger-orange/20 rounded-lg p-2 transition-all"
+                                                        onClick={() => setEditingMonthlyTarget(user.id)}
+                                                        title="Click to edit monthly target"
+                                                    >
+                                                        {user.monthlyTarget && user.monthlyTarget > 0 ? (
+                                                            <div className="space-y-1">
+                                                                <div className="flex items-center justify-center gap-2">
+                                                                    <Target className="w-4 h-4 text-tiger-orange" />
+                                                                    <span className="text-sm font-bold text-orange-200">
+                                                                        {user.ftds || 0} / {user.monthlyTarget}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="w-full bg-gray-700 rounded-full h-2">
+                                                                    <div
+                                                                        className={`h-2 rounded-full transition-all ${
+                                                                            user.ftds >= user.monthlyTarget
+                                                                                ? 'bg-gradient-to-r from-green-400 to-green-600'
+                                                                                : 'bg-tiger-gradient'
+                                                                        }`}
+                                                                        style={{
+                                                                            width: `${Math.min(
+                                                                                ((user.ftds || 0) / user.monthlyTarget) * 100,
+                                                                                100
+                                                                            )}%`,
+                                                                        }}
+                                                                    ></div>
+                                                                </div>
+                                                                {user.ftds >= user.monthlyTarget && (
+                                                                    <span className="text-xs text-green-400 font-bold">
+                                                                        🎯 Goal Reached!
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-sm text-gray-500 hover:text-tiger-orange">
+                                                                + Set target
                                                             </span>
                                                         )}
                                                     </div>
-                                                ) : (
-                                                    <span className="text-sm text-gray-500">No target</span>
                                                 )}
                                             </div>
                                         </td>

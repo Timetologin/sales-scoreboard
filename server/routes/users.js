@@ -126,6 +126,35 @@ router.put('/:id/daily-target', auth, adminAuth, async (req, res) => {
   }
 });
 
+// ⭐ NEW: Update user monthly target (Admin only)
+// @route   PUT /api/users/:id/monthly-target
+// @desc    Update user's monthly target
+// @access  Private + Admin
+router.put('/:id/monthly-target', auth, adminAuth, async (req, res) => {
+  try {
+    const { monthlyTarget } = req.body;
+    
+    if (typeof monthlyTarget !== 'number' || monthlyTarget < 0) {
+      return res.status(400).json({ message: 'Invalid monthly target value' });
+    }
+
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.monthlyTarget = monthlyTarget;
+    user.lastUpdated = Date.now();
+    await user.save();
+
+    res.json(user.getPublicProfile());
+  } catch (error) {
+    console.error('Update monthly target error:', error);
+    res.status(500).json({ message: 'Server error updating monthly target' });
+  }
+});
+
 // @route   PUT /api/users/:id/edit
 // @desc    Edit user details - name, email, role (Admin only)
 // @access  Private + Admin
