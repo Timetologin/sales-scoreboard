@@ -63,6 +63,9 @@ export const usersAPI = {
   // ⭐ NEW: Monthly Target per User endpoint
   updateMonthlyTarget: (id, monthlyTarget) => api.put(`/users/${id}/monthly-target`, { monthlyTarget }),
   
+  // ⭐ NEW: Monthly Progress per User endpoint (independent counter)
+  updateMonthlyProgress: (id, monthlyProgress) => api.put(`/users/${id}/monthly-progress`, { monthlyProgress }),
+  
   // Admin user management endpoints
   editUser: (id, userData) => api.put(`/users/${id}/edit`, userData),
   changePassword: (id, newPassword) => api.put(`/users/${id}/reset-password`, { newPassword }),

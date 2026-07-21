@@ -155,6 +155,35 @@ router.put('/:id/monthly-target', auth, adminAuth, async (req, res) => {
   }
 });
 
+// ⭐ NEW: Update user monthly progress (Admin only) - INDEPENDENT counter
+// @route   PUT /api/users/:id/monthly-progress
+// @desc    Update user's monthly progress (not tied to FTDs)
+// @access  Private + Admin
+router.put('/:id/monthly-progress', auth, adminAuth, async (req, res) => {
+  try {
+    const { monthlyProgress } = req.body;
+    
+    if (typeof monthlyProgress !== 'number' || monthlyProgress < 0) {
+      return res.status(400).json({ message: 'Invalid monthly progress value' });
+    }
+
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.monthlyProgress = monthlyProgress;
+    user.lastUpdated = Date.now();
+    await user.save();
+
+    res.json(user.getPublicProfile());
+  } catch (error) {
+    console.error('Update monthly progress error:', error);
+    res.status(500).json({ message: 'Server error updating monthly progress' });
+  }
+});
+
 // @route   PUT /api/users/:id/edit
 // @desc    Edit user details - name, email, role (Admin only)
 // @access  Private + Admin

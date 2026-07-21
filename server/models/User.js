@@ -45,6 +45,12 @@ const userSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
+  // ⭐ NEW: Monthly Progress - independent counter (NOT tied to FTDs)
+  monthlyProgress: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   dailyFTDs: {
     type: Number,
     default: 0,
@@ -168,6 +174,7 @@ userSchema.methods.getPublicProfile = function() {
     plusOnes: this.plusOnes,
     dailyTarget: this.dailyTarget,
     monthlyTarget: this.monthlyTarget,
+    monthlyProgress: this.monthlyProgress,
     dailyFTDs: this.dailyFTDs,
     todayFTDs: this.todayFTDs,
     lastResetDate: this.lastResetDate,

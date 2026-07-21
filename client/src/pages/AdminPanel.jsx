@@ -114,6 +114,7 @@ const AdminPanel = () => {
     const [showPasswordModal, setShowPasswordModal] = useState(null);
     const [showTargetsModal, setShowTargetsModal] = useState(false);
     const [showMonthlyTargetModal, setShowMonthlyTargetModal] = useState(false);
+    const [showUserMonthlyTargetsModal, setShowUserMonthlyTargetsModal] = useState(false);
     const [editingFTDs, setEditingFTDs] = useState(null);
     const [editingPlusOnes, setEditingPlusOnes] = useState(null);
     const [editingMonthlyTarget, setEditingMonthlyTarget] = useState(null);
@@ -209,6 +210,16 @@ const AdminPanel = () => {
             showMessage('success', '✅ Monthly Target updated successfully!');
         } catch (err) {
             showMessage('error', '❌ Failed to update Monthly Target');
+        }
+    };
+
+    const handleUpdateMonthlyProgressPerUser = async (userId, newProgress) => {
+        try {
+            await usersAPI.updateMonthlyProgress(userId, parseInt(newProgress) || 0);
+            await fetchUsers();
+            showMessage('success', '✅ Monthly Progress updated successfully!');
+        } catch (err) {
+            showMessage('error', '❌ Failed to update Monthly Progress');
         }
     };
 
@@ -410,6 +421,14 @@ const AdminPanel = () => {
                     >
                         <Calendar className="w-5 h-5" />
                         📅 Set Monthly Target
+                    </button>
+
+                    <button
+                        onClick={() => setShowUserMonthlyTargetsModal(true)}
+                        className="btn-alpha flex items-center gap-2"
+                    >
+                        <Target className="w-5 h-5" />
+                        🐯 User Monthly Targets
                     </button>
 
                     <button
@@ -725,60 +744,79 @@ const AdminPanel = () => {
                                             )}
                                         </td>
 
-                                        {/* Monthly Target per User */}
+                                        {/* Monthly Target per User - INDEPENDENT from FTDs */}
                                         <td className="px-4 py-4">
                                             <div className="text-center">
                                                 {editingMonthlyTarget === user.id ? (
-                                                    <div className="flex items-center justify-center gap-2">
-                                                        <input
-                                                            type="number"
-                                                            defaultValue={user.monthlyTarget || 0}
-                                                            className="w-20 px-2 py-1 bg-gray-700 border border-tiger-orange rounded text-white text-center"
-                                                            onBlur={(e) => {
-                                                                handleUpdateMonthlyTargetPerUser(user.id, e.target.value);
-                                                            }}
-                                                            onKeyDown={(e) => {
-                                                                if (e.key === 'Enter') {
-                                                                    const input = e.target;
-                                                                    handleUpdateMonthlyTargetPerUser(user.id, input.value);
-                                                                } else if (e.key === 'Escape') {
-                                                                    setEditingMonthlyTarget(null);
-                                                                }
-                                                            }}
-                                                            autoFocus
-                                                            min="0"
-                                                        />
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <div className="flex items-center gap-1">
+                                                            <input
+                                                                type="number"
+                                                                id={`monthly-progress-${user.id}`}
+                                                                defaultValue={user.monthlyProgress || 0}
+                                                                className="w-16 px-2 py-1 bg-gray-700 border border-tiger-orange rounded text-white text-center text-sm"
+                                                                min="0"
+                                                                autoFocus
+                                                            />
+                                                            <span className="text-orange-200 text-sm">/</span>
+                                                            <input
+                                                                type="number"
+                                                                id={`monthly-target-${user.id}`}
+                                                                defaultValue={user.monthlyTarget || 0}
+                                                                className="w-16 px-2 py-1 bg-gray-700 border border-tiger-orange rounded text-white text-center text-sm"
+                                                                min="0"
+                                                            />
+                                                        </div>
+                                                        <div className="flex gap-1">
+                                                            <button
+                                                                onClick={() => {
+                                                                    const progressInput = document.getElementById(`monthly-progress-${user.id}`);
+                                                                    const targetInput = document.getElementById(`monthly-target-${user.id}`);
+                                                                    handleUpdateMonthlyProgressPerUser(user.id, progressInput.value);
+                                                                    handleUpdateMonthlyTargetPerUser(user.id, targetInput.value);
+                                                                }}
+                                                                className="px-2 py-1 bg-green-600 hover:bg-green-700 rounded text-white text-xs font-bold"
+                                                            >
+                                                                ✓ Save
+                                                            </button>
+                                                            <button
+                                                                onClick={() => setEditingMonthlyTarget(null)}
+                                                                className="px-2 py-1 bg-gray-600 hover:bg-gray-700 rounded text-white text-xs font-bold"
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 ) : (
                                                     <div 
                                                         className="cursor-pointer hover:bg-tiger-orange/20 rounded-lg p-2 transition-all"
                                                         onClick={() => setEditingMonthlyTarget(user.id)}
-                                                        title="Click to edit monthly target"
+                                                        title="Click to edit monthly progress & target"
                                                     >
                                                         {user.monthlyTarget && user.monthlyTarget > 0 ? (
                                                             <div className="space-y-1">
                                                                 <div className="flex items-center justify-center gap-2">
                                                                     <Target className="w-4 h-4 text-tiger-orange" />
                                                                     <span className="text-sm font-bold text-orange-200">
-                                                                        {user.ftds || 0} / {user.monthlyTarget}
+                                                                        {user.monthlyProgress || 0} / {user.monthlyTarget}
                                                                     </span>
                                                                 </div>
                                                                 <div className="w-full bg-gray-700 rounded-full h-2">
                                                                     <div
                                                                         className={`h-2 rounded-full transition-all ${
-                                                                            user.ftds >= user.monthlyTarget
+                                                                            (user.monthlyProgress || 0) >= user.monthlyTarget
                                                                                 ? 'bg-gradient-to-r from-green-400 to-green-600'
                                                                                 : 'bg-tiger-gradient'
                                                                         }`}
                                                                         style={{
                                                                             width: `${Math.min(
-                                                                                ((user.ftds || 0) / user.monthlyTarget) * 100,
+                                                                                ((user.monthlyProgress || 0) / user.monthlyTarget) * 100,
                                                                                 100
                                                                             )}%`,
                                                                         }}
                                                                     ></div>
                                                                 </div>
-                                                                {user.ftds >= user.monthlyTarget && (
+                                                                {(user.monthlyProgress || 0) >= user.monthlyTarget && (
                                                                     <span className="text-xs text-green-400 font-bold">
                                                                         🎯 Goal Reached!
                                                                     </span>
@@ -988,6 +1026,19 @@ const AdminPanel = () => {
                     onError={(msg) => showMessage('error', msg)}
                 />
             )}
+
+            {showUserMonthlyTargetsModal && (
+                <UserMonthlyTargetsModal
+                    users={users}
+                    onClose={() => setShowUserMonthlyTargetsModal(false)}
+                    onSuccess={() => {
+                        setShowUserMonthlyTargetsModal(false);
+                        fetchUsers();
+                        showMessage('success', '✅ User monthly targets updated successfully!');
+                    }}
+                    onError={(msg) => showMessage('error', msg)}
+                />
+            )}
         </div>
     );
 };
@@ -1092,6 +1143,137 @@ const TargetsModal = ({ users, onClose, onSuccess, onError }) => {
                     >
                         <Save className="w-5 h-5" />
                         {loading ? '⏳ Saving...' : '💾 Save Targets'}
+                    </button>
+                    <button onClick={onClose} className="flex-1 btn-secondary flex items-center justify-center gap-2">
+                        <X className="w-5 h-5" />
+                        ❌ Cancel
+                    </button>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
+// ⭐ NEW: User Monthly Targets Modal Component - Individual monthly target & progress per user
+const UserMonthlyTargetsModal = ({ users, onClose, onSuccess, onError }) => {
+    const [targets, setTargets] = useState({});
+    const [progresses, setProgresses] = useState({});
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const initialTargets = {};
+        const initialProgresses = {};
+        users.forEach((user) => {
+            initialTargets[user.id] = user.monthlyTarget || 0;
+            initialProgresses[user.id] = user.monthlyProgress || 0;
+        });
+        setTargets(initialTargets);
+        setProgresses(initialProgresses);
+    }, [users]);
+
+    const handleSaveTargets = async () => {
+        setLoading(true);
+        try {
+            const targetPromises = Object.entries(targets).map(([userId, target]) => {
+                return usersAPI.updateMonthlyTarget(userId, parseInt(target) || 0);
+            });
+            const progressPromises = Object.entries(progresses).map(([userId, progress]) => {
+                return usersAPI.updateMonthlyProgress(userId, parseInt(progress) || 0);
+            });
+            await Promise.all([...targetPromises, ...progressPromises]);
+            onSuccess();
+        } catch (err) {
+            console.error('Failed to update user monthly targets:', err);
+            onError('❌ Failed to update user monthly targets');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="card-alpha max-w-2xl w-full p-6 max-h-[80vh] overflow-y-auto"
+            >
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 className="text-2xl font-bold alpha-text flex items-center gap-2">
+                            <Target className="w-8 h-8" />
+                            🐯 User Monthly Targets
+                        </h2>
+                        <p className="text-sm text-orange-200 mt-1">Set individual monthly progress & targets for each user (independent from FTDs)</p>
+                    </div>
+                    <button
+                        onClick={onClose}
+                        className="text-tiger-orange hover:text-tiger-yellow transition-colors p-2"
+                    >
+                        <X className="w-6 h-6" />
+                    </button>
+                </div>
+
+                <div className="space-y-4">
+                    {users.map((user) => (
+                        <div
+                            key={user.id}
+                            className="flex items-center justify-between p-4 bg-tiger-orange/10 rounded-lg border border-tiger-orange/30"
+                        >
+                            <div className="flex items-center gap-3">
+                                <img
+                                    src={user.profilePicture}
+                                    alt={user.name}
+                                    className="w-10 h-10 rounded-full border-2 border-tiger-orange"
+                                />
+                                <div>
+                                    <p className="font-bold text-tiger-yellow">{user.name}</p>
+                                    <p className="text-xs text-orange-200">
+                                        Monthly: {user.monthlyProgress || 0} / {user.monthlyTarget || 0}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <label className="text-xs text-orange-200 font-semibold">Progress:</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={progresses[user.id] || 0}
+                                    onChange={(e) =>
+                                        setProgresses({
+                                            ...progresses,
+                                            [user.id]: e.target.value,
+                                        })
+                                    }
+                                    className="w-16 px-2 py-2 bg-gray-700 border-2 border-tiger-orange rounded-lg text-center text-white font-bold focus:outline-none focus:border-tiger-yellow"
+                                />
+                                <span className="text-orange-200 font-bold">/</span>
+                                <label className="text-xs text-orange-200 font-semibold">Target:</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    value={targets[user.id] || 0}
+                                    onChange={(e) =>
+                                        setTargets({
+                                            ...targets,
+                                            [user.id]: e.target.value,
+                                        })
+                                    }
+                                    className="w-16 px-2 py-2 bg-gray-700 border-2 border-tiger-orange rounded-lg text-center text-white font-bold focus:outline-none focus:border-tiger-yellow"
+                                />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="flex gap-3 pt-6 mt-6 border-t border-tiger-orange/30">
+                    <button
+                        onClick={handleSaveTargets}
+                        disabled={loading}
+                        className="flex-1 btn-alpha flex items-center justify-center gap-2"
+                    >
+                        <Save className="w-5 h-5" />
+                        {loading ? '⏳ Saving...' : '💾 Save Monthly Targets'}
                     </button>
                     <button onClick={onClose} className="flex-1 btn-secondary flex items-center justify-center gap-2">
                         <X className="w-5 h-5" />
